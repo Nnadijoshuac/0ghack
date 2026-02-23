@@ -81,6 +81,16 @@ export async function createGoalPoolOnChain(input: CreatePoolInput) {
     metadataHash
   };
 
+  try {
+    await factory.createPool.staticCall(cfg);
+  } catch (error) {
+    const reason =
+      error instanceof Error && error.message
+        ? error.message
+        : "Preflight simulation failed before sending transaction.";
+    throw new Error(`Create pool preflight failed: ${reason}`);
+  }
+
   let gasLimit: bigint | undefined;
   try {
     const estimated = (await factory.createPool.estimateGas(cfg)) as bigint;
@@ -119,6 +129,16 @@ export async function contributeToPoolOnChain(poolAddress: string) {
   const pool = new ethers.Contract(poolAddress, GOAL_POOL_ABI, signer);
   const cfg = await pool.config();
   const amount = BigInt(cfg.contributionPerPerson.toString());
+
+  try {
+    await pool.contribute.staticCall({ value: amount });
+  } catch (error) {
+    const reason =
+      error instanceof Error && error.message
+        ? error.message
+        : "Preflight simulation failed before sending transaction.";
+    throw new Error(`Contribute preflight failed: ${reason}`);
+  }
 
   let gasLimit: bigint | undefined;
   try {

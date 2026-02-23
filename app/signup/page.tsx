@@ -99,11 +99,11 @@ export default function SignUpPage() {
             <div className="two-col">
               <label className="signup-input-group">
                 First Name
-                <input type="text" placeholder="Princess" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
+                <input type="text" placeholder="John" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
               </label>
               <label className="signup-input-group">
                 Last Name
-                <input type="text" placeholder="Saven" value={lastName} onChange={(event) => setLastName(event.target.value)} />
+                <input type="text" placeholder="Doe" value={lastName} onChange={(event) => setLastName(event.target.value)} />
               </label>
             </div>
 
@@ -112,14 +112,14 @@ export default function SignUpPage() {
                 Choose your pseudonym
                 <span className="label-muted"> - your public username on PoolFi</span>
               </span>
-              <input type="text" placeholder="e.g Saven" value={pseudonym} onChange={(event) => setPseudonym(event.target.value)} />
+              <input type="text" placeholder="0xDegenDoe" value={pseudonym} onChange={(event) => setPseudonym(event.target.value)} />
             </label>
             <p className="field-note">3-20 characters - letters, numbers and underscores only - no spaces</p>
 
-            <label className="signup-input-group">
-              Email Address
-              <input type="email" placeholder="saven@email.com" value={email} onChange={(event) => setEmail(event.target.value)} />
-            </label>
+              <label className="signup-input-group">
+                Email Address
+              <input type="email" placeholder="john.doe@email.com" value={email} onChange={(event) => setEmail(event.target.value)} />
+              </label>
 
             <label className="signup-input-group">
               Password
