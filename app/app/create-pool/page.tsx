@@ -2,17 +2,60 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { poolMembers, pools, toMoney } from "@/lib/mock-data";
+import { createGoalPoolOnChain } from "@/lib/backend/contracts";
+import { toMoney } from "@/lib/backend/format";
 
 type Step = 1 | 2 | 3;
 
 export default function CreatePoolPage() {
-  const pool = pools[0];
   const [step, setStep] = useState<Step>(1);
   const [launched, setLaunched] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false);
+  const [poolAddress, setPoolAddress] = useState("");
+  const [txError, setTxError] = useState("");
+  const [form, setForm] = useState({
+    name: "300L Class Dues",
+    description: "Class dues for semester activities and welfare.",
+    target: "400000",
+    contribution: "1000",
+    category: "Education",
+    startDate: "2026-02-18",
+    deadline: "2026-03-04"
+  });
 
   const nextStep = () => setStep((prev) => (prev < 3 ? ((prev + 1) as Step) : prev));
   const prevStep = () => setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev));
+
+  const launchPool = async () => {
+    try {
+      setIsLaunching(true);
+      setTxError("");
+      const startAt = Math.floor(new Date(form.startDate).getTime() / 1000);
+      const deadline = Math.floor(new Date(form.deadline).getTime() / 1000);
+
+      const result = await createGoalPoolOnChain({
+        name: form.name,
+        category: form.category,
+        targetAmount: BigInt(form.target || "0"),
+        contributionPerPerson: BigInt(form.contribution || "0"),
+        startAt,
+        deadline,
+        metadataText: JSON.stringify({
+          name: form.name,
+          description: form.description,
+          category: form.category
+        })
+      });
+
+      setPoolAddress(result.poolAddress);
+      localStorage.setItem("poolfi_last_pool_address", result.poolAddress);
+      setLaunched(true);
+    } catch (error) {
+      setTxError(error instanceof Error ? error.message : "Failed to launch pool.");
+    } finally {
+      setIsLaunching(false);
+    }
+  };
 
   return (
     <>
@@ -56,35 +99,82 @@ export default function CreatePoolPage() {
                 <div className="cp-form">
                   <label>
                     Pool Name
-                    <input placeholder="e.g. 300L Class Dues - 2nd Semester" />
+                    <input
+                      placeholder="e.g. 300L Class Dues - 2nd Semester"
+                      value={form.name}
+                      onChange={(event) =>
+                        setForm((prev) => ({ ...prev, name: event.target.value }))
+                      }
+                    />
                   </label>
                   <label>
                     Description <span>optional</span>
-                    <textarea placeholder="Briefly describe what this pool is for and how the money will be used..." />
+                    <textarea
+                      placeholder="Briefly describe what this pool is for and how the money will be used..."
+                      value={form.description}
+                      onChange={(event) =>
+                        setForm((prev) => ({ ...prev, description: event.target.value }))
+                      }
+                    />
                   </label>
                   <div className="cp-two">
                     <label>
                       Target Amount (N)
-                      <input placeholder={pool.target.toLocaleString("en-US")} />
+                      <input
+                        placeholder="400,000"
+                        value={form.target}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            target: event.target.value.replace(/\D/g, "")
+                          }))
+                        }
+                      />
                     </label>
                     <label>
                       Contribution Per Person (N)
-                      <input placeholder={pool.contributionPerPerson.toLocaleString("en-US")} />
+                      <input
+                        placeholder="1,000"
+                        value={form.contribution}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            contribution: event.target.value.replace(/\D/g, "")
+                          }))
+                        }
+                      />
                     </label>
                   </div>
                   <div className="cp-two">
                     <label>
                       Start Date
-                      <input value="02/18/2026" readOnly />
+                      <input
+                        type="date"
+                        value={form.startDate}
+                        onChange={(event) =>
+                          setForm((prev) => ({ ...prev, startDate: event.target.value }))
+                        }
+                      />
                     </label>
                     <label>
                       Deadline
-                      <input value="03/04/2026" readOnly />
+                      <input
+                        type="date"
+                        value={form.deadline}
+                        onChange={(event) =>
+                          setForm((prev) => ({ ...prev, deadline: event.target.value }))
+                        }
+                      />
                     </label>
                   </div>
                   <label>
                     Pool Category
-                    <input value={pool.category} readOnly />
+                    <input
+                      value={form.category}
+                      onChange={(event) =>
+                        setForm((prev) => ({ ...prev, category: event.target.value }))
+                      }
+                    />
                   </label>
                 </div>
               </>
@@ -153,26 +243,26 @@ export default function CreatePoolPage() {
                   <div className="cp-summary-grid">
                     <div>
                       <small>Pool Name</small>
-                      <strong>300L Class Dues</strong>
+                      <strong>{form.name}</strong>
                     </div>
                     <div>
                       <small>Target</small>
-                      <strong>{pool.target.toLocaleString("en-US")}</strong>
+                      <strong>{Number(form.target || "0").toLocaleString("en-US")}</strong>
                     </div>
                     <div>
                       <small>Per Person</small>
-                      <strong>{pool.contributionPerPerson.toLocaleString("en-US")}</strong>
+                      <strong>{Number(form.contribution || "0").toLocaleString("en-US")}</strong>
                     </div>
                     <div>
                       <small>Deadline</small>
-                      <strong>7 Mar 2026</strong>
+                      <strong>{new Date(form.deadline).toDateString()}</strong>
                     </div>
                   </div>
                 </div>
                 <div className="cp-summary">
                   <h4>Identity Fields</h4>
                   <div className="cp-pill-row">
-                    <span>{poolMembers[0].name.split(" ")[0]} Name</span>
+                    <span>Full Name</span>
                     <span>Matric. No</span>
                   </div>
                 </div>
@@ -181,6 +271,7 @@ export default function CreatePoolPage() {
                   Contributions are secured by smart contract and can only be released by
                   you as the admin.
                 </p>
+                {txError ? <p className="cp-note">{txError}</p> : null}
               </>
             ) : null}
 
@@ -191,13 +282,16 @@ export default function CreatePoolPage() {
               <button
                 type="button"
                 className="modal-primary"
-                onClick={step === 3 ? () => setLaunched(true) : nextStep}
+                onClick={step === 3 ? launchPool : nextStep}
+                disabled={isLaunching}
               >
                 {step === 1
                   ? "Continue to Rules ->"
                   : step === 2
                     ? "Review Pool ->"
-                    : "Launch Pool ->"}
+                    : isLaunching
+                      ? "Launching..."
+                      : "Launch Pool ->"}
               </button>
             </div>
           </article>
@@ -207,16 +301,16 @@ export default function CreatePoolPage() {
             <p>What contributors see</p>
             <article className="wizard-preview-card">
               <p className="preview-eyebrow">Goal Pool - Private</p>
-              <h4>{pool.name}</h4>
-              <p>Add a description above</p>
+              <h4>{form.name}</h4>
+              <p>{form.description || "Add a description above"}</p>
               <div className="preview-metrics">
                 <div>
                   <small>Target</small>
-                  <strong>{toMoney(pool.target)}</strong>
+                  <strong>{toMoney(Number(form.target || "0"))}</strong>
                 </div>
                 <div>
                   <small>Per Person</small>
-                  <strong>{toMoney(pool.contributionPerPerson)}</strong>
+                  <strong>{toMoney(Number(form.contribution || "0"))}</strong>
                 </div>
               </div>
               <div className="preview-note">
@@ -234,6 +328,11 @@ export default function CreatePoolPage() {
             <div className="launch-icon">POOL</div>
             <h2>Pool Launched</h2>
             <p>Your pool is live and ready to collect contributions.</p>
+            {poolAddress ? (
+              <p>
+                Pool address: <strong>{poolAddress}</strong>
+              </p>
+            ) : null}
             <div className="launch-actions">
               <Link className="modal-primary" href="/app">
                 Go to Dashboard

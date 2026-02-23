@@ -3,9 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { pools, viewer } from "@/lib/mock-data";
+import { useEffect, useMemo, useState } from "react";
 
-const mainItems = [
+type MainNavItem = {
+  label: string;
+  icon: string;
+  href: string;
+  key: string;
+  badge?: string;
+};
+
+const mainItems: MainNavItem[] = [
   { label: "Home", icon: "/images/dashboard/home.png", href: "/app", key: "home" },
   {
     label: "Create Pool",
@@ -17,8 +25,7 @@ const mainItems = [
     label: "My Pools",
     icon: "/images/dashboard/my-pools.png",
     href: "/app/my-pools",
-    key: "my-pools",
-    badge: String(pools.length)
+    key: "my-pools"
   },
   { label: "Impact", icon: "/images/dashboard/impact.png", href: "/app/impact", key: "impact" },
   { label: "My Wallet", icon: "/images/dashboard/wallet.png", href: "#", key: "wallet" }
@@ -46,6 +53,32 @@ function getActiveKey(pathname: string) {
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const activeKey = getActiveKey(pathname);
+  const [poolCount, setPoolCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/v1/pools", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data: { pools?: unknown[] }) => {
+        if (!cancelled) setPoolCount(Array.isArray(data.pools) ? data.pools.length : 0);
+      })
+      .catch(() => {
+        if (!cancelled) setPoolCount(0);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const navItems = useMemo(
+    () =>
+      mainItems.map((item) =>
+        item.key === "my-pools" ? { ...item, badge: String(poolCount) } : item
+      ),
+    [poolCount]
+  );
 
   return (
     <main className="poolfi-dashboard">
@@ -63,7 +96,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
           <p className="nav-title">Main</p>
           <nav className="sidebar-nav">
-            {mainItems.map((item) => (
+            {navItems.map((item) => (
               <Link
                 href={item.href}
                 key={item.label}
@@ -97,10 +130,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="sidebar-user">
-          <div className="user-avatar">{viewer.initials}</div>
+          <div className="user-avatar">0G</div>
           <div>
-            <p>{viewer.name}</p>
-            <span>{viewer.handle}</span>
+            <p>0G User</p>
+            <span>Builder</span>
           </div>
         </div>
       </aside>

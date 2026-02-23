@@ -1,7 +1,43 @@
+﻿"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setError(data.error || "Login failed.");
+        return;
+      }
+
+      router.push("/app");
+    } catch {
+      setError("Network error. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="login-page">
       <section className="login-layout">
@@ -51,23 +87,35 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <form className="login-form">
+          <form className="login-form" onSubmit={handleSubmit}>
             <label className="login-input-group">
-              Email Address or Phone Number
-              <input type="text" placeholder="saven@email.com" />
+              Email Address
+              <input
+                type="email"
+                placeholder="saven@email.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
             </label>
             <label className="login-input-group">
               Password
-              <input type="password" placeholder="Enter Password" />
+              <input
+                type="password"
+                placeholder="Enter Password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
             </label>
+
+            {error ? <p className="auth-error">{error}</p> : null}
 
             <div className="forgot-row">
               <button type="button">Forgot Password?</button>
             </div>
 
-            <Link href="/app" className="login-submit">
-              Sign In <span aria-hidden>{"->"}</span>
-            </Link>
+            <button type="submit" className="login-submit" disabled={loading}>
+              {loading ? "Signing In..." : "Sign In"} <span aria-hidden>{"->"}</span>
+            </button>
           </form>
 
           <p className="signup-note">

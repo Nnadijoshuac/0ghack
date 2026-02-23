@@ -1,55 +1,96 @@
+﻿"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import {
-  dashboardBalance,
-  impactFeatured,
-  uiMeta,
-  pools,
-  recentActivity,
-  toMoney,
-  toPercent,
-  viewer
-} from "@/lib/mock-data";
+import { useEffect, useMemo, useState } from "react";
+import { toMoney, toPercent } from "@/lib/backend/format";
+import type { PoolRecord } from "@/lib/backend/types";
+
+type DashboardResponse = {
+  viewer: { name: string; handle: string; initials: string };
+  balance: { total: number; available: number; locked: number };
+  pools: PoolRecord[];
+  latestPool: PoolRecord | null;
+  recentActivity: Array<{
+    icon: string;
+    title: string;
+    time: string;
+    amount: string;
+    positive: boolean | null;
+  }>;
+};
 
 const spotlightPools = Array.from({ length: 4 }, (_, idx) => ({
   id: idx + 1,
-  title: impactFeatured.title,
+  title: "Clean Water Borehole for Oguta Community, Imo State",
   description:
     "Help build a functioning borehole for 3,000+ residents who currently walk 2km daily for water.",
-  raised: toMoney(impactFeatured.raised),
-  target: toMoney(impactFeatured.target),
-  progress: toPercent(impactFeatured.raised, impactFeatured.target)
+  raised: "N670,000",
+  target: "N1,000,000",
+  progress: 67
 }));
 
 export default function AppPage() {
-  const activePools = pools.map((pool, index) => ({
-    icon:
-      index === 0
-        ? "/images/dashboard/my-pools.png"
-        : index === 1
-          ? "/images/dashboard/wallet.png"
-          : "/images/dashboard/impact.png",
-    name: pool.name,
-    meta: `${index === 0 ? "Admin" : "Contributor"}   ${pool.contributorsPaid} of ${pool.contributorsTotal} paid   ${pool.deadlineText}`,
-    raised: toMoney(pool.raised),
-    target: toMoney(pool.target),
-    progress: toPercent(pool.raised, pool.target),
-    footLeft:
-      index === 0
-        ? `${pool.contributorsTotal - pool.contributorsPaid} yet to pay`
-        : `Your contribution: ${toMoney(pool.contributionPerPerson)}`,
-    footRight: index === 0 ? "CSV Report ready" : "",
-    action: index === 0 ? "Manage ->" : "View Pool ->",
-    href: index === 0 ? "/app/pool-manager" : "#",
-    actionColor: "blue"
-  }));
+  const [data, setData] = useState<DashboardResponse | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/v1/dashboard", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((payload: DashboardResponse & { error?: string }) => {
+        if (cancelled) return;
+        if (payload.error) {
+          setError(payload.error);
+          return;
+        }
+        setData(payload);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Failed to load dashboard");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const activePools = useMemo(() => {
+    if (!data?.pools) return [];
+
+    return data.pools
+      .slice()
+      .reverse()
+      .map((pool, index) => ({
+        icon:
+          index === 0
+            ? "/images/dashboard/my-pools.png"
+            : index === 1
+              ? "/images/dashboard/wallet.png"
+              : "/images/dashboard/impact.png",
+        name: pool.name,
+        meta: `${index === 0 ? "Admin" : "Contributor"}  ${pool.contributorsPaid} contributors`,
+        raised: toMoney(pool.raised),
+        target: toMoney(pool.target),
+        progress: toPercent(pool.raised, pool.target),
+        footLeft:
+          pool.contributorsTotal > pool.contributorsPaid
+            ? `${pool.contributorsTotal - pool.contributorsPaid} yet to pay`
+            : `${pool.contributorsPaid} contributors paid`,
+        footRight: index === 0 ? `Pool: ${pool.address.slice(0, 10)}...` : "",
+        action: index === 0 ? "Manage ->" : "View Pool ->",
+        href: index === 0 ? "/app/pool-manager" : "/app/my-pools",
+        actionColor: "blue"
+      }));
+  }, [data]);
 
   return (
     <section className="poolfi-content">
       <header className="poolfi-topbar">
         <div>
-          <h1>Good morning, {viewer.handle}</h1>
-          <p>{uiMeta.todayLabel}</p>
+          <h1>Good morning, {data?.viewer.handle ?? "Builder"}</h1>
+          <p>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</p>
         </div>
         <div className="topbar-actions">
           <button type="button" className="icon-button">
@@ -78,8 +119,8 @@ export default function AppPage() {
         <div className="balance-head">
           <div>
             <p>Your PoolFi Balance</p>
-            <h2>{toMoney(dashboardBalance.total)}.00</h2>
-            <span>Total Balance</span>
+            <h2>{toMoney(data?.balance.total ?? 0)}.00</h2>
+            <span>Total Raised Across Pools</span>
           </div>
           <div className="balance-actions">
             <button type="button">+ Add Funds</button>
@@ -91,55 +132,70 @@ export default function AppPage() {
         <div className="balance-metrics">
           <article>
             <p>Available</p>
-            <h3>{toMoney(dashboardBalance.available)}.00</h3>
-            <span>Free to use</span>
+            <h3>{toMoney(data?.balance.available ?? 0)}.00</h3>
+            <span>Wallet integration pending</span>
           </article>
           <article>
             <p>Locked</p>
-            <h3>{toMoney(dashboardBalance.locked)}.00</h3>
-            <span>In {pools.length} active pools</span>
+            <h3>{toMoney(data?.balance.locked ?? 0)}.00</h3>
+            <span>In {(data?.pools ?? []).length} active pools</span>
           </article>
           <article>
             <p>Pools</p>
-            <h3>{pools.length} Active</h3>
-            <span>1 completed</span>
+            <h3>{(data?.pools ?? []).length} Active</h3>
+            <span>On-chain factory deployments</span>
           </article>
         </div>
       </section>
 
+      {error ? <p className="cp-note">{error}</p> : null}
+
       <section className="active-pools">
-        {activePools.map((pool) => (
-          <article className="active-pool-card" key={pool.name}>
-            <div className="active-pool-head">
-              <div className="pool-head-left">
-                <span className="pool-head-icon">
-                  <Image src={pool.icon} alt="" width={18} height={18} />
-                </span>
-                <div>
-                  <h3>{pool.name}</h3>
-                  <p>{pool.meta}</p>
-                </div>
-              </div>
-              <span className="status-pill">Active</span>
-            </div>
-
-            <p className="raised-line">
-              <strong>{pool.raised}</strong> raised
-              <span>Target: {pool.target}</span>
-            </p>
-            <div className="active-progress">
-              <div style={{ width: `${pool.progress}%` }} />
-            </div>
-
-            <div className="active-foot">
-              <p>{pool.footLeft}</p>
-              <p>{pool.footRight}</p>
-              <Link href={pool.href} className={`pool-action ${pool.actionColor}`}>
-                {pool.action}
-              </Link>
-            </div>
+        {activePools.length === 0 ? (
+          <article className="empty-state">
+            <Image
+              src="/images/dashboard/no-active-pools.png"
+              alt="No pools created"
+              width={138}
+              height={138}
+            />
+            <h2>No Active Pools</h2>
+            <p>No pools on-chain yet. Create one to get started.</p>
           </article>
-        ))}
+        ) : (
+          activePools.map((pool) => (
+            <article className="active-pool-card" key={pool.name + pool.footRight}>
+              <div className="active-pool-head">
+                <div className="pool-head-left">
+                  <span className="pool-head-icon">
+                    <Image src={pool.icon} alt="" width={18} height={18} />
+                  </span>
+                  <div>
+                    <h3>{pool.name}</h3>
+                    <p>{pool.meta}</p>
+                  </div>
+                </div>
+                <span className="status-pill">Active</span>
+              </div>
+
+              <p className="raised-line">
+                <strong>{pool.raised}</strong> raised
+                <span>Target: {pool.target}</span>
+              </p>
+              <div className="active-progress">
+                <div style={{ width: `${pool.progress}%` }} />
+              </div>
+
+              <div className="active-foot">
+                <p>{pool.footLeft}</p>
+                <p>{pool.footRight}</p>
+                <Link href={pool.href} className={`pool-action ${pool.actionColor}`}>
+                  {pool.action}
+                </Link>
+              </div>
+            </article>
+          ))
+        )}
       </section>
 
       <section className="spotlight">
@@ -174,8 +230,8 @@ export default function AppPage() {
           <Link href="#">All -&gt;</Link>
         </div>
         <ul>
-          {recentActivity.map((item) => (
-            <li key={item.title}>
+          {(data?.recentActivity ?? []).map((item) => (
+            <li key={item.title + item.time}>
               <div className="activity-main">
                 <span className="activity-icon">{item.icon}</span>
                 <div>

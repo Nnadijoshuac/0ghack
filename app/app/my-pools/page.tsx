@@ -1,15 +1,87 @@
+﻿"use client";
+
 import Image from "next/image";
-import { poolMembers, pools, toMoney, toPercent, uiMeta, viewer } from "@/lib/mock-data";
+import { useEffect, useMemo, useState } from "react";
+import { formatDate, shortAddress, toMoney, toPercent } from "@/lib/backend/format";
+import type { MemberRecord, PoolRecord } from "@/lib/backend/types";
+
+type LatestPoolResponse = {
+  pool: PoolRecord | null;
+  error?: string;
+};
+
+type MembersResponse = {
+  pool: PoolRecord;
+  members: MemberRecord[];
+  error?: string;
+};
 
 export default function MyPoolsPage() {
-  const pool = pools[0];
+  const [pool, setPool] = useState<PoolRecord | null>(null);
+  const [members, setMembers] = useState<MemberRecord[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/v1/pools/latest", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((payload: LatestPoolResponse) => {
+        if (cancelled) return;
+        if (payload.error) {
+          setError(payload.error);
+          return;
+        }
+        setPool(payload.pool);
+
+        if (!payload.pool) return;
+        return fetch(`/api/v1/pools/${payload.pool.address}/members`, { cache: "no-store" })
+          .then((res) => res.json())
+          .then((membersPayload: MembersResponse) => {
+            if (cancelled) return;
+            if (membersPayload.error) {
+              setError(membersPayload.error);
+              return;
+            }
+            setMembers(membersPayload.members ?? []);
+          });
+      })
+      .catch(() => {
+        if (!cancelled) setError("Failed to load latest pool");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const progress = useMemo(() => {
+    if (!pool) return 0;
+    return toPercent(pool.raised, pool.target);
+  }, [pool]);
+
+  if (!pool) {
+    return (
+      <section className="poolfi-content mypools-content">
+        <header className="poolfi-topbar">
+          <div>
+            <h1>My Pools</h1>
+            <p>On-chain view</p>
+          </div>
+        </header>
+        <article className="active-pool-card">
+          <p>{error || "No on-chain pool found yet. Create one first."}</p>
+        </article>
+      </section>
+    );
+  }
 
   return (
     <section className="poolfi-content mypools-content">
       <header className="poolfi-topbar">
         <div>
-          <h1>Good morning, {viewer.handle}</h1>
-          <p>{uiMeta.todayLabel}</p>
+          <h1>My Pools</h1>
+          <p>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</p>
         </div>
         <div className="topbar-actions">
           <button type="button" className="icon-button">
@@ -38,7 +110,7 @@ export default function MyPoolsPage() {
         <p className="manager-chip">Goal Pool - Admin View</p>
         <h1>{pool.name}</h1>
         <p className="mypools-hero-sub">
-          Closes Feb 28, 2026 - {toMoney(pool.contributionPerPerson)} per person - {pool.category}
+          Closes {formatDate(pool.deadlineISO)} - {toMoney(pool.contributionPerPerson)} per person - {pool.category}
         </p>
         <div className="mypools-kpis">
           <article>
@@ -53,13 +125,13 @@ export default function MyPoolsPage() {
           </article>
           <article>
             <span>Pending</span>
-            <h3>{pool.contributorsTotal - pool.contributorsPaid}</h3>
-            <p>Have not paid</p>
+            <h3>{Math.max(pool.contributorsTotal - pool.contributorsPaid, 0)}</h3>
+            <p>Unknown total target</p>
           </article>
           <article>
-            <span>Deadline</span>
-            <h3>5</h3>
-            <p>Days Left</p>
+            <span>Status</span>
+            <h3>{pool.status}</h3>
+            <p>{formatDate(pool.deadlineISO)}</p>
           </article>
         </div>
       </section>
@@ -69,13 +141,13 @@ export default function MyPoolsPage() {
           <article className="manager-progress-card">
             <div className="title-row">
               <h2>{toMoney(pool.raised)} raised</h2>
-              <span className="mini-pill">{toPercent(pool.raised, pool.target)}% funded</span>
+              <span className="mini-pill">{progress}% funded</span>
             </div>
             <div className="active-progress">
-              <div style={{ width: `${toPercent(pool.raised, pool.target)}%` }} />
+              <div style={{ width: `${progress}%` }} />
             </div>
             <div className="progress-meta">
-              <p>{pool.contributorsTotal - pool.contributorsPaid} students yet to pay</p>
+              <p>{pool.contributorsPaid} contributors paid</p>
               <p>Target: {toMoney(pool.target)}</p>
             </div>
           </article>
@@ -83,27 +155,25 @@ export default function MyPoolsPage() {
           <article className="mypools-members">
             <div className="members-head">
               <h3>Members</h3>
-              <span>({pool.contributorsTotal} total)</span>
+              <span>({members.length} from chain events)</span>
               <button type="button">Remind All Unpaid</button>
             </div>
-            <input className="members-search" placeholder="Search names..." />
+            <input className="members-search" placeholder="Search wallet..." />
             <div className="members-tabs">
               <button type="button" className="active">
-                All ({pool.contributorsTotal})
+                All ({members.length})
               </button>
-              <button type="button">Paid ({pool.contributorsPaid})</button>
-              <button type="button">Pending ({pool.contributorsTotal - pool.contributorsPaid})</button>
+              <button type="button">Paid ({members.length})</button>
+              <button type="button">Pending (0)</button>
             </div>
             <ul>
-              {poolMembers.map((member) => (
-                <li key={member.name}>
+              {members.map((member) => (
+                <li key={member.wallet}>
                   <div className="person-main">
-                    <span className={`person-avatar ${member.avatarClass}`}>{member.initials}</span>
+                    <span className="person-avatar blue">{member.wallet.slice(2, 4).toUpperCase()}</span>
                     <div>
-                      <h4>{member.name}</h4>
-                      <p>
-                        {member.matric} - {member.paidDateText}
-                      </p>
+                      <h4>{shortAddress(member.wallet)}</h4>
+                      <p>{formatDate(member.joinedAtISO)} - on-chain participant</p>
                     </div>
                   </div>
                   <span className="paid-pill">Paid</span>
@@ -133,15 +203,15 @@ export default function MyPoolsPage() {
               </p>
               <p>
                 <span>Deadline</span>
-                <strong>Feb 28, 2026</strong>
+                <strong>{formatDate(pool.deadlineISO)}</strong>
               </p>
               <p>
-                <span>Withdrawal Mode</span>
-                <strong>Take All at Close</strong>
+                <span>Admin</span>
+                <strong>{shortAddress(pool.adminAddress)}</strong>
               </p>
               <p>
-                <span>Auto Reminders</span>
-                <strong>Enabled</strong>
+                <span>Pool Address</span>
+                <strong>{shortAddress(pool.address)}</strong>
               </p>
             </div>
           </article>

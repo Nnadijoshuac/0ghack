@@ -1,20 +1,31 @@
 ﻿import { NextResponse } from "next/server";
-import { poolMembers, pools } from "@/lib/mock-data";
+import { fetchPoolMembers, fetchPools } from "@/lib/backend/chain-read";
 
 type Context = {
   params: Promise<{ poolId: string }>;
 };
 
 export async function GET(_: Request, context: Context) {
-  const { poolId } = await context.params;
-  const pool = pools.find((item) => item.id === poolId);
+  try {
+    const { poolId } = await context.params;
+    const pools = await fetchPools();
 
-  if (!pool) {
-    return NextResponse.json({ error: "Pool not found" }, { status: 404 });
+    const pool = pools.find(
+      (item) =>
+        item.id.toLowerCase() === poolId.toLowerCase() ||
+        item.address.toLowerCase() === poolId.toLowerCase()
+    );
+
+    if (!pool) {
+      return NextResponse.json({ error: "Pool not found" }, { status: 404 });
+    }
+
+    const members = await fetchPoolMembers(pool.address);
+    return NextResponse.json({ pool, members });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to fetch pool members" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({
-    pool,
-    members: poolMembers
-  });
 }

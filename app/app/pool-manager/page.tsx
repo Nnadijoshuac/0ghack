@@ -1,42 +1,108 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
-import { poolMembers, pools, toMoney, toPercent } from "@/lib/mock-data";
+import { useEffect, useMemo, useState } from "react";
+import { contributeToPoolOnChain } from "@/lib/backend/contracts";
+import { formatDate, shortAddress, toMoney, toPercent } from "@/lib/backend/format";
+import type { MemberRecord, PoolRecord } from "@/lib/backend/types";
+
+type LatestPoolResponse = { pool: PoolRecord | null; error?: string };
+type MembersResponse = { pool: PoolRecord; members: MemberRecord[]; error?: string };
 
 export default function PoolManagerPage() {
-  const pool = pools[0];
+  const [pool, setPool] = useState<PoolRecord | null>(null);
+  const [members, setMembers] = useState<MemberRecord[]>([]);
   const [hasJoined, setHasJoined] = useState(false);
+  const [poolAddress, setPoolAddress] = useState("");
+  const [isContributing, setIsContributing] = useState(false);
+  const [txMessage, setTxMessage] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/v1/pools/latest", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((payload: LatestPoolResponse) => {
+        if (cancelled) return;
+        if (!payload.pool) {
+          const saved = localStorage.getItem("poolfi_last_pool_address");
+          if (saved) setPoolAddress(saved);
+          return;
+        }
+
+        setPool(payload.pool);
+        setPoolAddress(payload.pool.address);
+        localStorage.setItem("poolfi_last_pool_address", payload.pool.address);
+
+        return fetch(`/api/v1/pools/${payload.pool.address}/members`, { cache: "no-store" })
+          .then((res) => res.json())
+          .then((membersPayload: MembersResponse) => {
+            if (cancelled) return;
+            if (!membersPayload.error) {
+              setMembers(membersPayload.members ?? []);
+            }
+          });
+      })
+      .catch(() => {
+        const saved = localStorage.getItem("poolfi_last_pool_address");
+        if (!cancelled && saved) setPoolAddress(saved);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const progress = useMemo(() => {
+    if (!pool) return 0;
+    return toPercent(pool.raised, pool.target);
+  }, [pool]);
+
+  const handleContribute = async () => {
+    if (!poolAddress) {
+      setTxMessage("No pool contract found. Create a pool first.");
+      return;
+    }
+
+    try {
+      setIsContributing(true);
+      setTxMessage("");
+      const result = await contributeToPoolOnChain(poolAddress);
+      setTxMessage(`Contribution successful. Tx: ${result.txHash}`);
+    } catch (error) {
+      setTxMessage(error instanceof Error ? error.message : "Contribution failed.");
+    } finally {
+      setIsContributing(false);
+    }
+  };
 
   return (
     <section className="poolfi-content pool-manager-content">
       <section className="manager-hero">
         <p className="manager-chip">Goal Pool - Private - Invite Only</p>
-        <h1>300L Class Dues 2nd Semester 2025/26</h1>
+        <h1>{pool?.name ?? "No pool found"}</h1>
         <p className="manager-sub">
-          All 300 Level students are required to pay their class dues before the
-          deadline. Funds go towards end-of-semester events, class materials, and
-          welfare.
+          Track real-time on-chain progress, contributions, and contributors for your latest pool.
         </p>
         <div className="manager-kpis">
           <article>
             <span>Raised so far</span>
-            <h3>{toMoney(pool.raised)}</h3>
-            <p>of {toMoney(pool.target)} target</p>
+            <h3>{toMoney(pool?.raised ?? 0)}</h3>
+            <p>of {toMoney(pool?.target ?? 0)} target</p>
           </article>
           <article>
             <span>Contributors</span>
-            <h3>{pool.contributorsPaid}</h3>
-            <p>of {pool.contributorsTotal} students</p>
+            <h3>{pool?.contributorsPaid ?? 0}</h3>
+            <p>On-chain contributors</p>
           </article>
           <article>
             <span>Per Person</span>
-            <h3>{toMoney(pool.contributionPerPerson)}</h3>
+            <h3>{toMoney(pool?.contributionPerPerson ?? 0)}</h3>
             <p>fixed contribution</p>
           </article>
           <article>
             <span>Status</span>
-            <h3>{pool.deadlineText}</h3>
-            <p>Closes Feb 23, 2026</p>
+            <h3>{pool?.status ?? "-"}</h3>
+            <p>Closes {pool ? formatDate(pool.deadlineISO) : "-"}</p>
           </article>
         </div>
       </section>
@@ -45,15 +111,15 @@ export default function PoolManagerPage() {
         <div className="manager-main">
           <article className="manager-progress-card">
             <div className="title-row">
-              <h2>{toMoney(pool.raised)} raised</h2>
-              <span className="mini-pill">{toPercent(pool.raised, pool.target)}% funded</span>
+              <h2>{toMoney(pool?.raised ?? 0)} raised</h2>
+              <span className="mini-pill">{progress}% funded</span>
             </div>
             <div className="active-progress">
-              <div style={{ width: `${toPercent(pool.raised, pool.target)}%` }} />
+              <div style={{ width: `${progress}%` }} />
             </div>
             <div className="progress-meta">
-              <p>{pool.contributorsTotal - pool.contributorsPaid} students yet to pay</p>
-              <p>Target: {toMoney(pool.target)}</p>
+              <p>{pool?.contributorsPaid ?? 0} students paid</p>
+              <p>Target: {toMoney(pool?.target ?? 0)}</p>
             </div>
           </article>
 
@@ -61,8 +127,8 @@ export default function PoolManagerPage() {
             <div className="contributors-head">
               <h3>Contributors</h3>
               <div className="contributors-stats">
-                <span className="paid">{pool.contributorsPaid} Paid</span>
-                <span className="pending">{pool.contributorsTotal - pool.contributorsPaid} Pending</span>
+                <span className="paid">{members.length} Paid</span>
+                <span className="pending">0 Pending</span>
               </div>
               <div className="filter-pills">
                 <button type="button" className="active">
@@ -74,18 +140,16 @@ export default function PoolManagerPage() {
             </div>
 
             <ul className="contributors-list">
-              {poolMembers.map((person) => (
-                <li key={person.name}>
+              {members.map((person) => (
+                <li key={person.wallet}>
                   <div className="person-main">
-                    <span className={`person-avatar ${person.avatarClass}`}>{person.initials}</span>
+                    <span className="person-avatar blue">{person.wallet.slice(2, 4).toUpperCase()}</span>
                     <div>
-                      <h4>
-                        {person.name} {person.you ? <span className="you-tag">You</span> : null}
-                      </h4>
-                      <p>{person.matric}</p>
+                      <h4>{shortAddress(person.wallet)}</h4>
+                      <p>Joined {formatDate(person.joinedAtISO)}</p>
                     </div>
                   </div>
-                  <p className="person-time">{person.timeText}</p>
+                  <p className="person-time">on-chain</p>
                   <span className="paid-pill">Paid</span>
                 </li>
               ))}
@@ -95,8 +159,8 @@ export default function PoolManagerPage() {
 
         <aside className="manager-side">
           <article className="close-box">
-            <p>Pool closes in</p>
-            <h3>5 days, 14 hrs</h3>
+            <p>Pool closes</p>
+            <h3>{pool ? formatDate(pool.deadlineISO) : "-"}</h3>
           </article>
 
           {hasJoined ? (
@@ -104,7 +168,7 @@ export default function PoolManagerPage() {
               <article className="contribute-box">
                 <h4>Make Your Contribution</h4>
                 <p className="contribute-amount">
-                  N1,000 <span>fixed amount</span>
+                  {toMoney(pool?.contributionPerPerson ?? 0)} <span>fixed amount</span>
                 </p>
 
                 <div className="contribute-form">
@@ -117,12 +181,13 @@ export default function PoolManagerPage() {
                     <input placeholder="e.g. CSC/2022/045" />
                   </label>
                   <p className="balance-chip">
-                    Your PoolFi Balance <strong>N31,500.00</strong>
+                    Pool Contract <strong>{poolAddress ? shortAddress(poolAddress) : "-"}</strong>
                   </p>
-                  <button type="button" className="contribute-btn">
-                    Contribute N1,000 -&gt;
+                  <button type="button" className="contribute-btn" onClick={handleContribute} disabled={isContributing}>
+                    {isContributing ? "Contributing..." : `Contribute ${toMoney(pool?.contributionPerPerson ?? 0)} ->`}
                   </button>
-                  <p className="secure-note">Secured by smart contract on Lisk</p>
+                  {txMessage ? <p className="secure-note">{txMessage}</p> : null}
+                  <p className="secure-note">Secured by smart contract on 0G</p>
                 </div>
               </article>
 
@@ -141,26 +206,26 @@ export default function PoolManagerPage() {
                 <div className="join-info">
                   <div>
                     <span>Your contribution</span>
-                    <strong>{toMoney(pool.contributionPerPerson)} (fixed)</strong>
+                    <strong>{toMoney(pool?.contributionPerPerson ?? 0)} (fixed)</strong>
                   </div>
                   <div>
                     <span>Admin</span>
-                    <strong>{pool.admin}</strong>
+                    <strong>{pool ? shortAddress(pool.adminAddress) : "-"}</strong>
                   </div>
                   <div>
                     <span>Deadline</span>
-                    <strong>Feb 23, 2026</strong>
+                    <strong>{pool ? formatDate(pool.deadlineISO) : "-"}</strong>
                   </div>
                   <div>
                     <span>Members so far</span>
-                    <strong>{pool.contributorsPaid + 37} joined</strong>
+                    <strong>{members.length} joined</strong>
                   </div>
                 </div>
                 <button type="button" className="join-later" onClick={() => setHasJoined(true)}>
                   Join Pool (Pay Later)
                 </button>
                 <button type="button" className="join-pay" onClick={() => setHasJoined(true)}>
-                  Join and Pay Now - {toMoney(pool.contributionPerPerson)}
+                  Join and Pay Now - {toMoney(pool?.contributionPerPerson ?? 0)}
                 </button>
               </article>
 
@@ -168,7 +233,7 @@ export default function PoolManagerPage() {
                 <h4>What happens when you join?</h4>
                 <ol>
                   <li>The pool is saved in your My Pools tab.</li>
-                  <li>You appear in the member list as Joined (Pending).</li>
+                  <li>You appear in the member list as Joined (Paid).</li>
                   <li>You can pay anytime before the deadline.</li>
                 </ol>
               </article>

@@ -19,7 +19,7 @@ export type BackendConfig = {
 export const backendConfig: BackendConfig = {
   chain: {
     name: "0G Galileo Testnet",
-    chainId: Number(process.env.NEXT_PUBLIC_OG_CHAIN_ID ?? 16601),
+    chainId: Number(process.env.NEXT_PUBLIC_OG_CHAIN_ID ?? 16602),
     rpcUrl: process.env.NEXT_PUBLIC_OG_RPC_URL ?? "",
     explorerUrl: process.env.NEXT_PUBLIC_OG_EXPLORER_URL ?? "",
     poolFactoryAddress: process.env.NEXT_PUBLIC_POOL_FACTORY_ADDRESS

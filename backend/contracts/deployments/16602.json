@@ -1,0 +1,7 @@
+{
+  "chainId": 16602,
+  "rpcUrl": "https://evmrpc-testnet.0g.ai",
+  "poolFactoryAddress": "0xa9B848400d44dBa4deDe99B7d7dC65b0Ed82D16A",
+  "txHash": "0x8655805b9c24251814cab927fb3add4db223c9c4ba9a86e40a8a8eea59bb7bbe",
+  "deployedAt": "2026-02-23T10:15:55.087Z"
+}

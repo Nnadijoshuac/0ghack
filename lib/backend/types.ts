@@ -4,6 +4,7 @@ export type PoolType = "GOAL" | "IMPACT";
 
 export type PoolRecord = {
   id: string;
+  address: string;
   type: PoolType;
   name: string;
   category: string;
@@ -12,6 +13,7 @@ export type PoolRecord = {
   contributionPerPerson: number;
   contributorsPaid: number;
   contributorsTotal: number;
+  startAtISO: string;
   deadlineISO: string;
   status: PoolStatus;
   adminAddress: string;

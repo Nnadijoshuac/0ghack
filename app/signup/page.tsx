@@ -1,7 +1,46 @@
+﻿"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function SignUpPage() {
+  const router = useRouter();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [pseudonym, setPseudonym] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/v1/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName, lastName, pseudonym, email, password })
+      });
+
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setError(data.error || "Signup failed.");
+        return;
+      }
+
+      router.push("/signup/transaction-pin");
+    } catch {
+      setError("Network error. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="signup-page">
       <section className="login-layout">
@@ -56,46 +95,42 @@ export default function SignUpPage() {
             </Link>
           </div>
 
-          <form className="signup-form">
+          <form className="signup-form" onSubmit={handleSubmit}>
             <div className="two-col">
               <label className="signup-input-group">
                 First Name
-                <input type="text" placeholder="Princess" />
+                <input type="text" placeholder="Princess" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
               </label>
               <label className="signup-input-group">
                 Last Name
-                <input type="text" placeholder="Saven" />
+                <input type="text" placeholder="Saven" value={lastName} onChange={(event) => setLastName(event.target.value)} />
               </label>
             </div>
 
             <label className="signup-input-group">
               <span className="label-line">
                 Choose your pseudonym
-                <span className="label-muted">
-                  {" "}
-                  - your public username on PoolFi
-                </span>
+                <span className="label-muted"> - your public username on PoolFi</span>
               </span>
-              <input type="text" placeholder="e.g Saven" />
+              <input type="text" placeholder="e.g Saven" value={pseudonym} onChange={(event) => setPseudonym(event.target.value)} />
             </label>
-            <p className="field-note">
-              3-20 characters - letters, numbers and underscores only - no
-              spaces
-            </p>
+            <p className="field-note">3-20 characters - letters, numbers and underscores only - no spaces</p>
 
             <label className="signup-input-group">
               Email Address
-              <input type="email" placeholder="saven@email.com" />
+              <input type="email" placeholder="saven@email.com" value={email} onChange={(event) => setEmail(event.target.value)} />
             </label>
 
             <label className="signup-input-group">
               Password
-              <input type="password" placeholder="Min. 8 characters" />
+              <input type="password" placeholder="Min. 8 characters" value={password} onChange={(event) => setPassword(event.target.value)} />
             </label>
 
-            <Link href="/signup/transaction-pin" className="signup-submit">
-              Continue <span aria-hidden>{"->"}</span>
-            </Link>
+            {error ? <p className="auth-error">{error}</p> : null}
+
+            <button type="submit" className="signup-submit" disabled={loading}>
+              {loading ? "Creating Account..." : "Continue"} <span aria-hidden>{"->"}</span>
+            </button>
           </form>
 
           <p className="wallet-auth-note">
@@ -103,13 +138,12 @@ export default function SignUpPage() {
           </p>
 
           <p className="signin-note">
-            Already have an account?{" "}
-            <Link href="/login">Sign in</Link>
+            Already have an account? <Link href="/login">Sign in</Link>
           </p>
 
           <p className="terms-note">
-            By signing up you agree to PoolFi&apos;s <Link href="#">Terms of Service</Link>{" "}
-            and <Link href="#">Privacy Policy</Link>
+            By signing up you agree to PoolFi&apos;s <Link href="#">Terms of Service</Link> and{" "}
+            <Link href="#">Privacy Policy</Link>
           </p>
         </section>
       </section>
