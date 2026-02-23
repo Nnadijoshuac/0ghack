@@ -41,6 +41,24 @@ Set these in `.env.local` (template in `.env.example`):
 - `OG_STORAGE_PRIVATE_KEY` (server-only)
 - `AUTH_DB_DIR`
 
+## 0G Scope Used In This Submission
+
+1. 0G EVM Testnet (core integration)
+- Frontend is configured for 0G Galileo testnet.
+- Goal Pool launch is executed on-chain through `PoolFactory.createPool(...)`.
+- Contribution flow is wired through `GoalPool.contribute()`.
+
+2. 0G Storage (auth persistence)
+- Walletless auth records are persisted via a local JSON DB with optional sync to 0G Storage using `@0glabs/0g-ts-sdk`.
+- Root-hash tracking and indexer-based download path are included.
+
+3. 0G-ready backend surface
+- App Router API endpoints (`/api/v1/*`) provide the read/write surface for dashboard, pools, impact, and auth with 0G-aware config.
+
+Not yet fully completed in this submission:
+- Dedicated public Impact Pool on-chain launch flow.
+- Full production event indexing pipeline for all contract events.
+
 ## Quick Start
 
 1. Install dependencies
