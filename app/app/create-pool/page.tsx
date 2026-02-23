@@ -1,14 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createGoalPoolOnChain } from "@/lib/backend/contracts";
 import { toMoney } from "@/lib/backend/format";
 
 type Step = 1 | 2 | 3;
+type PoolKind = "goal" | "impact";
 
 export default function CreatePoolPage() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>(1);
+  const [poolKind, setPoolKind] = useState<PoolKind>("goal");
+  const [showTypeModal, setShowTypeModal] = useState(true);
   const [launched, setLaunched] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
   const [poolAddress, setPoolAddress] = useState("");
@@ -59,12 +64,67 @@ export default function CreatePoolPage() {
 
   return (
     <>
+      {showTypeModal ? (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <section className="pool-modal pool-type-modal">
+            <div className="pool-type-head">
+              <div>
+                <h2>Create a Pool</h2>
+                <p>
+                  Choose the type of pool you want to create. You can always change
+                  the details later.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="pool-type-close"
+                aria-label="Close"
+                onClick={() => router.push("/app")}
+              >
+                X
+              </button>
+            </div>
+
+            <div className="pool-type-grid">
+              <button
+                type="button"
+                className={`pool-type-card ${poolKind === "goal" ? "active" : ""}`}
+                onClick={() => setPoolKind("goal")}
+              >
+                <span className="pool-type-icon">G</span>
+                <h3>Goal Pool</h3>
+                <p>Private. Invite-only. For class dues, events, and group contributions.</p>
+              </button>
+              <button
+                type="button"
+                className={`pool-type-card ${poolKind === "impact" ? "active" : ""}`}
+                onClick={() => setPoolKind("impact")}
+              >
+                <span className="pool-type-icon">I</span>
+                <h3>Impact Pool</h3>
+                <p>Public. Community-verified. For causes, projects, and shared goals.</p>
+              </button>
+            </div>
+
+            <div className="pool-type-actions">
+              <button
+                type="button"
+                className="modal-primary"
+                onClick={() => setShowTypeModal(false)}
+              >
+                Continue to Setup -&gt;
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
       <section className="poolfi-content create-pool-content">
         <header className="create-pool-top">
           <Link href="/app" className="back-btn">
             &lt;
           </Link>
-          <h1>Create Goal Pool</h1>
+          <h1>Create {poolKind === "goal" ? "Goal" : "Impact"} Pool</h1>
           <button type="button" className="wizard-preview">
             Preview
           </button>
@@ -300,7 +360,9 @@ export default function CreatePoolPage() {
             <h3>Live Preview</h3>
             <p>What contributors see</p>
             <article className="wizard-preview-card">
-              <p className="preview-eyebrow">Goal Pool - Private</p>
+              <p className="preview-eyebrow">
+                {poolKind === "goal" ? "Goal Pool - Private" : "Impact Pool - Public"}
+              </p>
               <h4>{form.name}</h4>
               <p>{form.description || "Add a description above"}</p>
               <div className="preview-metrics">
