@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Sora } from "next/font/google";
+import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 
 const sora = Sora({
@@ -8,7 +8,7 @@ const sora = Sora({
   weight: ["600", "700"]
 });
 
-const dmSans = DM_Sans({
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-body",
   weight: ["400", "500", "600", "700"]
@@ -26,8 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sora.variable} ${dmSans.variable}`}>{children}</body>
+      <body className={`${sora.variable} ${inter.variable}`}>{children}</body>
     </html>
   );
 }
-
