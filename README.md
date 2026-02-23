@@ -61,6 +61,22 @@ Centralized in `lib/mock-data.ts`:
 - `recentActivity`
 - `uiMeta`
 
+## 0G Backend Scaffold (Included)
+
+The repo now includes a backend foundation for 0G integration:
+
+- `backend/contracts/src/PoolFactory.sol`
+- `backend/contracts/src/GoalPool.sol`
+- `backend/contracts/src/interfaces/IPoolFiTypes.sol`
+- `backend/api/openapi.yaml`
+- `backend/docs/INTEGRATION.md`
+- `lib/backend/config.ts`
+- `lib/backend/types.ts`
+- `lib/backend/api-client.ts`
+- `app/api/v1/*` (mock-backed API routes)
+
+Use `.env.example` to configure 0G network values.
+
 ## Notes
 
 - This is a frontend prototype only.

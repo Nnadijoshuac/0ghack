@@ -1,0 +1,43 @@
+﻿openapi: 3.1.0
+info:
+  title: PoolFi API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3000/api/v1
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /dashboard:
+    get:
+      summary: Dashboard aggregates for viewer
+      responses:
+        '200':
+          description: Dashboard payload
+  /pools:
+    get:
+      summary: List pools
+      responses:
+        '200':
+          description: Pool list
+  /pools/{poolId}/members:
+    get:
+      summary: List members for pool
+      parameters:
+        - in: path
+          name: poolId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Member list
+  /impact:
+    get:
+      summary: Impact feed
+      responses:
+        '200':
+          description: Impact cards and featured pool

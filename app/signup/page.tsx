@@ -98,16 +98,9 @@ export default function SignUpPage() {
             </Link>
           </form>
 
-          <div className="or-divider">
-            <span>or continue with</span>
-          </div>
-
-          <button type="button" className="google-button">
-            <span className="google-g" aria-hidden>
-              G
-            </span>
-            Continue with Google
-          </button>
+          <p className="wallet-auth-note">
+            Wallet-based authentication will be enabled in the 0G backend integration phase.
+          </p>
 
           <p className="signin-note">
             Already have an account?{" "}

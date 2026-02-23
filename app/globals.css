@@ -821,51 +821,11 @@ p {
   gap: 0.36rem;
 }
 
-.or-divider {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 0.8rem;
-  color: #8b93a5;
-  font-size: 0.9rem;
-  margin: 0.1rem 0;
-}
-
-.or-divider::before,
-.or-divider::after {
-  content: "";
-  height: 1px;
-  background: #d5dbe5;
-}
-
-.google-button {
-  height: 2.7rem;
-  width: 100%;
-  border: 1px solid #d6dce6;
-  background: #fff;
-  border-radius: 0.6rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  color: #20283a;
-  font: inherit;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.google-g {
-  font-weight: 700;
-  font-size: 1.28rem;
-  background: conic-gradient(
-    #ea4335 0deg 90deg,
-    #fbbc05 90deg 170deg,
-    #34a853 170deg 250deg,
-    #4285f4 250deg 360deg
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.wallet-auth-note {
+  margin: 0;
+  text-align: center;
+  color: #7b8599;
+  font-size: 0.82rem;
 }
 
 .signin-note {
