@@ -20,6 +20,8 @@ export default function MyPoolsPage() {
   const [pool, setPool] = useState<PoolRecord | null>(null);
   const [members, setMembers] = useState<MemberRecord[]>([]);
   const [error, setError] = useState("");
+  const [pseudonym, setPseudonym] = useState("Builder");
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
     let cancelled = false;
@@ -55,18 +57,56 @@ export default function MyPoolsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    fetch("/api/v1/auth/me", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((payload: { session?: { pseudonym?: string } }) => {
+        if (typeof payload.session?.pseudonym === "string" && payload.session.pseudonym.trim()) {
+          setPseudonym(payload.session.pseudonym);
+        }
+      })
+      .catch(() => {
+        // keep fallback
+      });
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
   const progress = useMemo(() => {
     if (!pool) return 0;
     return toPercent(pool.raised, pool.target);
   }, [pool]);
+
+  const greeting = useMemo(() => {
+    const hour = now.getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  }, [now]);
+
+  const dateLabel = useMemo(
+    () =>
+      now.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }),
+    [now]
+  );
 
   if (!pool) {
     return (
       <section className="poolfi-content mypools-content">
         <header className="poolfi-topbar">
           <div>
-            <h1>My Pools</h1>
-            <p>On-chain view</p>
+            <h1>
+              {greeting}, {pseudonym}
+            </h1>
+            <p>{dateLabel}</p>
           </div>
         </header>
         <article className="active-pool-card">
@@ -80,8 +120,10 @@ export default function MyPoolsPage() {
     <section className="poolfi-content mypools-content">
       <header className="poolfi-topbar">
         <div>
-          <h1>My Pools</h1>
-          <p>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</p>
+          <h1>
+            {greeting}, {pseudonym}
+          </h1>
+          <p>{dateLabel}</p>
         </div>
         <div className="topbar-actions">
           <button type="button" className="icon-button">

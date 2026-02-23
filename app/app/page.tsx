@@ -33,6 +33,7 @@ const spotlightPools = Array.from({ length: 4 }, (_, idx) => ({
 export default function AppPage() {
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [error, setError] = useState("");
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
     let cancelled = false;
@@ -55,6 +56,29 @@ export default function AppPage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const greeting = useMemo(() => {
+    const hour = now.getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  }, [now]);
+
+  const dateLabel = useMemo(
+    () =>
+      now.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }),
+    [now]
+  );
 
   const activePools = useMemo(() => {
     if (!data?.pools) return [];
@@ -89,8 +113,10 @@ export default function AppPage() {
     <section className="poolfi-content">
       <header className="poolfi-topbar">
         <div>
-          <h1>Good morning, {data?.viewer.handle ?? "Builder"}</h1>
-          <p>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</p>
+          <h1>
+            {greeting}, {data?.viewer.handle ?? "Builder"}
+          </h1>
+          <p>{dateLabel}</p>
         </div>
         <div className="topbar-actions">
           <button type="button" className="icon-button">

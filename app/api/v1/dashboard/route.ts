@@ -1,9 +1,23 @@
 ﻿import { NextResponse } from "next/server";
 import { fetchLatestPool, fetchPools } from "@/lib/backend/chain-read";
+import { verifySessionToken } from "@/lib/auth/session";
 
-export async function GET() {
+function getSessionTokenFromCookie(cookieHeader: string | null) {
+  if (!cookieHeader) return undefined;
+  const match = cookieHeader.match(/poolfi_session=([^;]+)/);
+  return match?.[1];
+}
+
+export async function GET(request: Request) {
   try {
     const [latestPool, pools] = await Promise.all([fetchLatestPool(), fetchPools()]);
+
+    const token = getSessionTokenFromCookie(request.headers.get("cookie"));
+    const session = verifySessionToken(token);
+    const pseudonym =
+      typeof session?.pseudonym === "string" && session.pseudonym.trim().length > 0
+        ? session.pseudonym
+        : "Builder";
 
     const totalRaised = pools.reduce((sum, item) => sum + item.raised, 0);
 
@@ -20,7 +34,11 @@ export async function GET() {
       : [];
 
     return NextResponse.json({
-      viewer: { name: "0G User", handle: "Builder", initials: "0G" },
+      viewer: {
+        name: pseudonym,
+        handle: pseudonym,
+        initials: pseudonym.slice(0, 2).toUpperCase()
+      },
       balance: {
         total: totalRaised,
         available: 0,
