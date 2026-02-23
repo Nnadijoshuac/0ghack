@@ -6,9 +6,9 @@ import { useState } from "react";
 
 const navMain = [
   { label: "Home", icon: "/images/dashboard/home.png", href: "/app", active: true },
-  { label: "Create Pool", icon: "/images/dashboard/create-pool.png", href: "#" },
-  { label: "My Pools", icon: "/images/dashboard/my-pools.png", href: "#", badge: "3" },
-  { label: "Impact", icon: "/images/dashboard/impact.png", href: "#" },
+  { label: "Create Pool", icon: "/images/dashboard/create-pool.png", href: "/app/create-pool" },
+  { label: "My Pools", icon: "/images/dashboard/my-pools.png", href: "/app/my-pools", badge: "3" },
+  { label: "Impact", icon: "/images/dashboard/impact.png", href: "/app/impact" },
   { label: "My Wallet", icon: "/images/dashboard/wallet.png", href: "#" }
 ];
 

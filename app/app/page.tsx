@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -8,15 +9,21 @@ type CreatePoolStep = "choose" | "basics" | "rules" | "review";
 type PoolType = "goal" | "impact";
 
 const navMain = [
-  { label: "Home", icon: "/images/dashboard/home.png", active: true },
+  { label: "Home", icon: "/images/dashboard/home.png", active: true, href: "/app" },
   {
     label: "Create Pool",
     icon: "/images/dashboard/create-pool.png",
-    active: false
+    active: false,
+    href: "/app/create-pool"
   },
-  { label: "My Pools", icon: "/images/dashboard/my-pools.png", badge: "3" },
-  { label: "Impact", icon: "/images/dashboard/impact.png" },
-  { label: "My Wallet", icon: "/images/dashboard/wallet.png" }
+  {
+    label: "My Pools",
+    icon: "/images/dashboard/my-pools.png",
+    badge: "3",
+    href: "/app/my-pools"
+  },
+  { label: "Impact", icon: "/images/dashboard/impact.png", href: "/app/impact" },
+  { label: "My Wallet", icon: "/images/dashboard/wallet.png", href: "#" }
 ];
 
 const navAccount = [
@@ -24,9 +31,10 @@ const navAccount = [
     label: "Notifications",
     icon: "/images/dashboard/notifications.png",
     badge: "2",
-    badgeRed: true
+    badgeRed: true,
+    href: "#"
   },
-  { label: "Settings", icon: "/images/dashboard/settings.png" }
+  { label: "Settings", icon: "/images/dashboard/settings.png", href: "#" }
 ];
 
 const spotlightPools = Array.from({ length: 4 }, (_, idx) => ({
@@ -113,6 +121,7 @@ const activePools = [
 ];
 
 export default function AppPage() {
+  const router = useRouter();
   const [isCreatePoolOpen, setIsCreatePoolOpen] = useState(false);
   const [isPoolLaunchedOpen, setIsPoolLaunchedOpen] = useState(false);
   const [createStep, setCreateStep] = useState<CreatePoolStep>("choose");
@@ -126,9 +135,7 @@ export default function AppPage() {
   }, [poolType]);
 
   const openCreatePool = () => {
-    setPoolType("goal");
-    setCreateStep("choose");
-    setIsCreatePoolOpen(true);
+    router.push("/app/create-pool");
   };
 
   const closeCreatePool = () => {
@@ -202,7 +209,7 @@ export default function AppPage() {
             <nav className="sidebar-nav">
               {navMain.map((item) => (
                 <Link
-                  href="#"
+                  href={item.href}
                   key={item.label}
                   className={`nav-item${item.active ? " active" : ""}`}
                 >
@@ -218,7 +225,7 @@ export default function AppPage() {
             <p className="nav-title">Account</p>
             <nav className="sidebar-nav">
               {navAccount.map((item) => (
-                <Link href="#" key={item.label} className="nav-item">
+              <Link href={item.href} key={item.label} className="nav-item">
                   <span className="nav-icon-wrap">
                     <Image src={item.icon} alt="" width={20} height={20} />
                   </span>
