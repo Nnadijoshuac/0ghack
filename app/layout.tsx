@@ -16,7 +16,10 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "PoolFi",
-  description: "Goal-based community pools on 0G"
+  description: "Goal-based community pools on 0G",
+  icons: {
+    icon: "/favicon.jpeg"
+  }
 };
 
 export default function RootLayout({

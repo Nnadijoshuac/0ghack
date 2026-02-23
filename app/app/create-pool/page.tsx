@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -91,7 +92,9 @@ export default function CreatePoolPage() {
                 className={`pool-type-card ${poolKind === "goal" ? "active" : ""}`}
                 onClick={() => setPoolKind("goal")}
               >
-                <span className="pool-type-icon">G</span>
+                <span className="pool-type-icon">
+                  <Image src="/images/my-pool.png" alt="Goal pool" width={28} height={28} />
+                </span>
                 <h3>Goal Pool</h3>
                 <p>Private. Invite-only. For class dues, events, and group contributions.</p>
               </button>
@@ -100,7 +103,9 @@ export default function CreatePoolPage() {
                 className={`pool-type-card ${poolKind === "impact" ? "active" : ""}`}
                 onClick={() => setPoolKind("impact")}
               >
-                <span className="pool-type-icon">I</span>
+                <span className="pool-type-icon">
+                  <Image src="/images/impact-image.png" alt="Impact pool" width={28} height={28} />
+                </span>
                 <h3>Impact Pool</h3>
                 <p>Public. Community-verified. For causes, projects, and shared goals.</p>
               </button>
