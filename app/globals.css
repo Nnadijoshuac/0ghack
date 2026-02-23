@@ -2351,6 +2351,47 @@ p {
   gap: 0.55rem;
 }
 
+.cp-invite-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.cp-invite-row input {
+  height: 2.5rem;
+  border: 1px solid #d7deea;
+  border-radius: 0.65rem;
+  padding: 0 0.75rem;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.cp-add-btn {
+  border: 0;
+  border-radius: 0.65rem;
+  height: 2.5rem;
+  padding: 0 1rem;
+  background: #2451cf;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cp-invite-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cp-invite-pill button {
+  border: 0;
+  background: transparent;
+  color: #69758d;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+}
+
 .cp-toggle {
   border: 1px solid #dbe2ee;
   border-radius: 0.72rem;
@@ -3278,6 +3319,13 @@ p {
 
 .pool-type-actions .modal-primary {
   width: min(260px, 100%);
+}
+
+.pool-type-footnote {
+  margin: -0.35rem 0 0;
+  text-align: center;
+  font-size: 0.82rem;
+  color: #657390;
 }
 
 @media (max-width: 800px) {

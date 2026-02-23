@@ -19,6 +19,11 @@ export default function CreatePoolPage() {
   const [isLaunching, setIsLaunching] = useState(false);
   const [poolAddress, setPoolAddress] = useState("");
   const [txError, setTxError] = useState("");
+  const [inviteInput, setInviteInput] = useState("");
+  const [invitees, setInvitees] = useState<string[]>([
+    "john.doe@email.com",
+    "classrep300@example.com"
+  ]);
   const [form, setForm] = useState({
     name: "300L Class Dues",
     description: "Class dues for semester activities and welfare.",
@@ -31,6 +36,21 @@ export default function CreatePoolPage() {
 
   const nextStep = () => setStep((prev) => (prev < 3 ? ((prev + 1) as Step) : prev));
   const prevStep = () => setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev));
+
+  const addInvitee = () => {
+    const value = inviteInput.trim();
+    if (!value) return;
+    if (invitees.includes(value)) {
+      setInviteInput("");
+      return;
+    }
+    setInvitees((prev) => [...prev, value]);
+    setInviteInput("");
+  };
+
+  const removeInvitee = (value: string) => {
+    setInvitees((prev) => prev.filter((entry) => entry !== value));
+  };
 
   const launchPool = async () => {
     try {
@@ -47,9 +67,13 @@ export default function CreatePoolPage() {
         startAt,
         deadline,
         metadataText: JSON.stringify({
+          poolType: "goal",
+          visibility: "private",
+          inviteOnly: true,
           name: form.name,
           description: form.description,
-          category: form.category
+          category: form.category,
+          invitedMembers: invitees
         })
       });
 
@@ -104,7 +128,7 @@ export default function CreatePoolPage() {
                 onClick={() => setPoolKind("impact")}
               >
                 <span className="pool-type-icon">
-                  <Image src="/images/impact-image.png" alt="Impact pool" width={28} height={28} />
+                  <Image src="/images/impact.png" alt="Impact pool" width={28} height={28} />
                 </span>
                 <h3>Impact Pool</h3>
                 <p>Public. Community-verified. For causes, projects, and shared goals.</p>
@@ -115,11 +139,21 @@ export default function CreatePoolPage() {
               <button
                 type="button"
                 className="modal-primary"
-                onClick={() => setShowTypeModal(false)}
+                onClick={() => {
+                  setShowTypeModal(false);
+                  if (poolKind === "impact") {
+                    setPoolKind("goal");
+                  }
+                }}
               >
-                Continue to Setup -&gt;
+                {poolKind === "goal" ? "Continue to Goal Setup ->" : "Start with Goal Pool ->"}
               </button>
             </div>
+            {poolKind === "impact" ? (
+              <p className="pool-type-footnote">
+                Impact Pool flow is next. For now, continue with Goal Pool (private invite-only).
+              </p>
+            ) : null}
           </section>
         </div>
       ) : null}
@@ -129,7 +163,7 @@ export default function CreatePoolPage() {
           <Link href="/app" className="back-btn">
             &lt;
           </Link>
-          <h1>Create {poolKind === "goal" ? "Goal" : "Impact"} Pool</h1>
+          <h1>Create Goal Pool</h1>
           <button type="button" className="wizard-preview">
             Preview
           </button>
@@ -252,6 +286,33 @@ export default function CreatePoolPage() {
                   <p>Define how contributors pay and what information you need from them.</p>
                 </div>
                 <div className="cp-rules">
+                  <h4 className="section-title">Invited Members</h4>
+                  <div className="cp-invite-row">
+                    <input
+                      placeholder="Enter email or pseudonym"
+                      value={inviteInput}
+                      onChange={(event) => setInviteInput(event.target.value)}
+                    />
+                    <button type="button" className="cp-add-btn" onClick={addInvitee}>
+                      Add
+                    </button>
+                  </div>
+                  <div className="cp-pill-row">
+                    {invitees.length > 0 ? (
+                      invitees.map((invitee) => (
+                        <span key={invitee} className="cp-invite-pill">
+                          {invitee}
+                          <button type="button" onClick={() => removeInvitee(invitee)}>
+                            x
+                          </button>
+                        </span>
+                      ))
+                    ) : (
+                      <span>No invitees yet</span>
+                    )}
+                  </div>
+
+                  <h4 className="section-title">Payout Rules</h4>
                   <div className="cp-toggle">
                     <div>
                       <h4>Take All at Close</h4>
@@ -331,10 +392,19 @@ export default function CreatePoolPage() {
                     <span>Matric. No</span>
                   </div>
                 </div>
+                <div className="cp-summary">
+                  <h4>Invited Members ({invitees.length})</h4>
+                  <div className="cp-pill-row">
+                    {invitees.slice(0, 4).map((invitee) => (
+                      <span key={invitee}>{invitee}</span>
+                    ))}
+                    {invitees.length > 4 ? <span>+{invitees.length - 4} more</span> : null}
+                  </div>
+                </div>
                 <p className="cp-note">
-                  Once launched, your pool will be deployed on the 0G network.
-                  Contributions are secured by smart contract and can only be released by
-                  you as the admin.
+                  This Goal Pool is private and invite-only. Only invited members can
+                  access the contribution page. Pool funds are secured by smart contract
+                  and can only be released by you as admin.
                 </p>
                 {txError ? <p className="cp-note">{txError}</p> : null}
               </>
@@ -366,7 +436,7 @@ export default function CreatePoolPage() {
             <p>What contributors see</p>
             <article className="wizard-preview-card">
               <p className="preview-eyebrow">
-                {poolKind === "goal" ? "Goal Pool - Private" : "Impact Pool - Public"}
+                Goal Pool - Private - Invite Only
               </p>
               <h4>{form.name}</h4>
               <p>{form.description || "Add a description above"}</p>
@@ -381,8 +451,7 @@ export default function CreatePoolPage() {
                 </div>
               </div>
               <div className="preview-note">
-                The live preview updates as you fill in details. This is exactly what
-                contributors see.
+                Only invited members can access this pool link and contribute.
               </div>
             </article>
           </aside>
