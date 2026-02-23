@@ -109,10 +109,6 @@ export default function LoginPage() {
 
             {error ? <p className="auth-error">{error}</p> : null}
 
-            <div className="forgot-row">
-              <button type="button">Forgot Password?</button>
-            </div>
-
             <button type="submit" className="login-submit" disabled={loading}>
               {loading ? "Signing In..." : "Sign In"} <span aria-hidden>{"->"}</span>
             </button>

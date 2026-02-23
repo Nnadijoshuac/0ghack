@@ -443,7 +443,7 @@ p {
 }
 
 .login-layout {
-  width: min(1120px, 100%);
+  width: 100%;
   height: min(700px, calc(100vh - 1.5rem));
   border-radius: 0.9rem;
   overflow: hidden;
@@ -812,7 +812,7 @@ p {
 
 .signup-submit {
   width: 100%;
-  margin-top: 0;
+  margin-top: 0.28rem;
   height: 2.8rem;
   border-radius: 0.6rem;
   background: #2451cf;
@@ -878,7 +878,7 @@ p {
 
 @media (min-width: 981px) {
   .login-layout {
-    width: min(900px, 100%);
+    width: 100%;
     height: min(560px, calc(100vh - 0.6rem));
     grid-template-columns: 36% 64%;
     align-items: center;
@@ -1028,7 +1028,7 @@ p {
   position: fixed;
   top: 0;
   left: 0;
-  width: 232px;
+  width: 186px;
   height: 100vh;
   z-index: 30;
   border-right: 1px solid #dde3ee;
@@ -1040,19 +1040,19 @@ p {
 
 .poolfi-brand {
   border-bottom: 1px solid #dde3ee;
-  padding: 1.2rem 1rem;
+  padding: 0.8rem 0.65rem;
   display: grid;
   place-items: center;
 }
 
 .sidebar-logo {
-  width: 112px;
+  width: 84px;
   height: auto;
 }
 
 .nav-title {
-  margin: 0.9rem 1rem 0.5rem;
-  font-size: 0.72rem;
+  margin: 0.6rem 0.72rem 0.3rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: #707b90;
@@ -1062,18 +1062,19 @@ p {
 .sidebar-nav {
   display: grid;
   gap: 0.2rem;
-  margin: 0 0.65rem 1rem;
+  margin: 0 0.42rem 0.62rem;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.62rem;
-  min-height: 2.75rem;
-  border-radius: 0.65rem;
-  padding: 0.55rem 0.72rem;
+  gap: 0.5rem;
+  min-height: 2.1rem;
+  border-radius: 0.5rem;
+  padding: 0.36rem 0.48rem;
   color: #5d677d;
   font-weight: 500;
+  font-size: 0.8rem;
 }
 
 .nav-item.active {
@@ -1085,8 +1086,8 @@ p {
 .nav-icon-wrap {
   display: grid;
   place-items: center;
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 1.05rem;
+  height: 1.05rem;
 }
 
 .nav-badge {
@@ -1110,52 +1111,53 @@ p {
 
 .sidebar-user {
   border-top: 1px solid #dde3ee;
-  padding: 1rem;
+  padding: 0.62rem;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.45rem;
 }
 
 .user-avatar {
-  width: 2rem;
-  height: 2rem;
+  width: 1.55rem;
+  height: 1.55rem;
   border-radius: 999px;
   background: #2451cf;
   color: #fff;
   display: grid;
   place-items: center;
-  font-size: 0.72rem;
+  font-size: 0.58rem;
   font-weight: 700;
 }
 
 .sidebar-user p {
   margin: 0;
   font-weight: 700;
+  font-size: 0.78rem;
 }
 
 .sidebar-user span {
   color: #7d879b;
-  font-size: 0.82rem;
+  font-size: 0.68rem;
 }
 
 .poolfi-content {
-  margin-left: 232px;
-  padding: 6.8rem 1.1rem 1.1rem;
+  margin-left: 186px;
+  padding: 5.2rem 0.75rem 0.75rem;
   display: grid;
   align-content: start;
-  gap: 1rem;
+  gap: 0.65rem;
 }
 
 .poolfi-topbar {
   position: fixed;
   top: 0;
-  left: 232px;
+  left: 186px;
   right: 0;
   z-index: 25;
   background: #fff;
   border-bottom: 1px solid #dde3ee;
-  min-height: 5.4rem;
-  padding: 1.35rem 1.15rem;
+  min-height: 4.2rem;
+  padding: 0.82rem 0.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1165,13 +1167,13 @@ p {
 .poolfi-topbar h1 {
   margin: 0;
   font-family: var(--font-display), sans-serif;
-  font-size: 1.1rem;
+  font-size: 0.92rem;
 }
 
 .poolfi-topbar p {
   margin: 0.22rem 0 0;
   color: #7d879b;
-  font-size: 0.82rem;
+  font-size: 0.68rem;
 }
 
 .topbar-actions {
@@ -1181,9 +1183,9 @@ p {
 }
 
 .icon-button {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.62rem;
+  width: 1.62rem;
+  height: 1.62rem;
+  border-radius: 0.48rem;
   border: 1px solid #d8deea;
   background: #fff;
   display: grid;
@@ -1194,12 +1196,13 @@ p {
 
 .create-pool-btn {
   border: 0;
-  border-radius: 0.62rem;
-  height: 2rem;
-  padding: 0 0.95rem;
+  border-radius: 0.48rem;
+  height: 1.62rem;
+  padding: 0 0.68rem;
   background: #2451cf;
   color: #fff;
   font-weight: 700;
+  font-size: 0.74rem;
   cursor: pointer;
 }
 
@@ -3411,7 +3414,7 @@ p {
     white-space: normal;
   }
 
-  .pin-row {
+.pin-row {
     max-width: none;
   }
 }
