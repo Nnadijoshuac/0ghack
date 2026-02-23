@@ -267,7 +267,7 @@ export default function CreatePoolPage() {
                   </div>
                 </div>
                 <p className="cp-note">
-                  Once launched, your pool will be deployed on the Lisk network.
+                  Once launched, your pool will be deployed on the 0G network.
                   Contributions are secured by smart contract and can only be released by
                   you as the admin.
                 </p>

@@ -81,7 +81,15 @@ export async function createGoalPoolOnChain(input: CreatePoolInput) {
     metadataHash
   };
 
-  const tx = await factory.createPool(cfg);
+  let gasLimit: bigint | undefined;
+  try {
+    const estimated = (await factory.createPool.estimateGas(cfg)) as bigint;
+    gasLimit = (estimated * BigInt(120)) / BigInt(100);
+  } catch {
+    gasLimit = undefined;
+  }
+
+  const tx = await factory.createPool(cfg, gasLimit ? { gasLimit } : {});
   const receipt = await tx.wait();
 
   const iface = new ethers.Interface(FACTORY_ABI);
@@ -112,7 +120,15 @@ export async function contributeToPoolOnChain(poolAddress: string) {
   const cfg = await pool.config();
   const amount = BigInt(cfg.contributionPerPerson.toString());
 
-  const tx = await pool.contribute({ value: amount });
+  let gasLimit: bigint | undefined;
+  try {
+    const estimated = (await pool.contribute.estimateGas({ value: amount })) as bigint;
+    gasLimit = (estimated * BigInt(120)) / BigInt(100);
+  } catch {
+    gasLimit = undefined;
+  }
+
+  const tx = await pool.contribute(gasLimit ? { value: amount, gasLimit } : { value: amount });
   const receipt = await tx.wait();
 
   return { txHash: tx.hash as string, blockNumber: Number(receipt.blockNumber) };
