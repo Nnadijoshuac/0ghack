@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { poolMembers, pools, toMoney, toPercent, viewer } from "@/lib/mock-data";
+import { poolMembers, pools, toMoney, toPercent, uiMeta, viewer } from "@/lib/mock-data";
 
 export default function MyPoolsPage() {
   const pool = pools[0];
@@ -9,7 +9,7 @@ export default function MyPoolsPage() {
       <header className="poolfi-topbar">
         <div>
           <h1>Good morning, {viewer.handle}</h1>
-          <p>Wednesday, Feb 18, 2026</p>
+          <p>{uiMeta.todayLabel}</p>
         </div>
         <div className="topbar-actions">
           <button type="button" className="icon-button">

@@ -71,7 +71,7 @@ export default function LoginPage() {
           </form>
 
           <p className="signup-note">
-            New to Poolfi?{" "}
+            New to PoolFi?{" "}
             <Link href="/signup" className="signup-link">
               Sign up
             </Link>

@@ -20,6 +20,18 @@ export default function TransactionPinPage() {
     pinRefs.current[index + 1]?.focus();
   };
 
+  const handlePinKeyDown = (
+    index: number,
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key !== "Backspace") return;
+
+    const input = event.currentTarget;
+    if (input.value) return;
+
+    pinRefs.current[index - 1]?.focus();
+  };
+
   return (
     <main className="signup-page">
       <section className="login-layout">
@@ -71,10 +83,12 @@ export default function TransactionPinPage() {
                 type="password"
                 inputMode="numeric"
                 maxLength={1}
+                autoComplete="one-time-code"
                 ref={(el) => {
                   pinRefs.current[0] = el;
                 }}
                 onChange={(event) => handlePinChange(0, event)}
+                onKeyDown={(event) => handlePinKeyDown(0, event)}
               />
               <input
                 type="password"
@@ -84,6 +98,7 @@ export default function TransactionPinPage() {
                   pinRefs.current[1] = el;
                 }}
                 onChange={(event) => handlePinChange(1, event)}
+                onKeyDown={(event) => handlePinKeyDown(1, event)}
               />
               <input
                 type="password"
@@ -93,6 +108,7 @@ export default function TransactionPinPage() {
                   pinRefs.current[2] = el;
                 }}
                 onChange={(event) => handlePinChange(2, event)}
+                onKeyDown={(event) => handlePinKeyDown(2, event)}
               />
               <input
                 type="password"
@@ -102,6 +118,7 @@ export default function TransactionPinPage() {
                   pinRefs.current[3] = el;
                 }}
                 onChange={(event) => handlePinChange(3, event)}
+                onKeyDown={(event) => handlePinKeyDown(3, event)}
               />
             </div>
             <p className="pin-note">

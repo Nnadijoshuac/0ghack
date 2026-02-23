@@ -36,6 +36,8 @@ const accountItems = [
 ];
 
 function getActiveKey(pathname: string) {
+  if (pathname.startsWith("/app/create-pool")) return "create";
+  if (pathname.startsWith("/app/pool-manager")) return "my-pools";
   if (pathname.startsWith("/app/impact")) return "impact";
   if (pathname.startsWith("/app/my-pools")) return "my-pools";
   return "home";

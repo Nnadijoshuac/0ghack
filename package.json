@@ -1,8 +1,8 @@
 {
-  "name": "poolfin",
+  "name": "poolfi-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "Poolfin frontend prototype",
+  "description": "PoolFi frontend prototype for collaborative goal and impact pools",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

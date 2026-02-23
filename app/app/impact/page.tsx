@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { impactCards, impactFeatured, pools, toMoney, toPercent } from "@/lib/mock-data";
+import {
+  impactCards,
+  impactFeatured,
+  impactStats,
+  pools,
+  toMoney,
+  toPercent
+} from "@/lib/mock-data";
 
 const categories = [
   "All",
@@ -28,11 +35,11 @@ export default function ImpactPage() {
         </p>
         <div className="impact-stats">
           <article>
-            <h3>N48.2M</h3>
+            <h3>{impactStats.totalRaisedLabel}</h3>
             <p>Total Raised</p>
           </article>
           <article>
-            <h3>1,240</h3>
+            <h3>{impactStats.contributorsLabel}</h3>
             <p>Contributors</p>
           </article>
           <article>
@@ -40,7 +47,7 @@ export default function ImpactPage() {
             <p>Active Pools</p>
           </article>
           <article>
-            <h3>12</h3>
+            <h3>{impactStats.completedLabel}</h3>
             <p>Completed</p>
           </article>
         </div>

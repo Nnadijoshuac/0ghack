@@ -28,6 +28,11 @@ export const viewer = {
   initials: "PS"
 };
 
+export const uiMeta = {
+  appName: "PoolFi",
+  todayLabel: "Wednesday, Feb 28 , 2026"
+};
+
 export const dashboardBalance = {
   total: 47500,
   available: 32500,
@@ -153,6 +158,12 @@ export const impactFeatured = {
   contributors: 346
 };
 
+export const impactStats = {
+  totalRaisedLabel: "N48.2M",
+  contributorsLabel: "1,240",
+  completedLabel: "12"
+};
+
 export const impactCards = Array.from({ length: 6 }, (_, idx) => ({
   id: `impact-${idx + 1}`,
   title: "Scholarship Fund for Indigent UNIBEN Students",
@@ -194,4 +205,3 @@ export function toMoney(value: number) {
 export function toPercent(raised: number, target: number) {
   return Math.round((raised / target) * 100);
 }
-

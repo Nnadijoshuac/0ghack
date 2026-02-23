@@ -15,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Poolfin",
+  title: "PoolFi",
   description: "Goal-based community pools on 0G"
 };
 
