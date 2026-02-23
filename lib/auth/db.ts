@@ -4,7 +4,13 @@ import { Indexer, ZgFile } from "@0glabs/0g-ts-sdk";
 import { ethers } from "ethers";
 import type { AuthDb } from "@/lib/auth/types";
 
-const dataDir = path.join(process.cwd(), ".data");
+function resolveDataDir() {
+  if (process.env.AUTH_DB_DIR) return process.env.AUTH_DB_DIR;
+  if (process.env.VERCEL) return "/tmp/poolfi-data";
+  return path.join(process.cwd(), ".data");
+}
+
+const dataDir = resolveDataDir();
 const dbPath = path.join(dataDir, "auth-db.json");
 const rootPath = path.join(dataDir, "auth-db-root.txt");
 const downloadPath = path.join(dataDir, "auth-db-download.json");
