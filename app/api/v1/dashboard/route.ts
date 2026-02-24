@@ -8,8 +8,11 @@ export async function GET(request: Request) {
     const session = getSessionFromRequest(request);
     const pseudonym = session?.pseudonym?.trim() || "Builder";
 
-    const [latestPool, pools] = await Promise.all([fetchLatestPool(), fetchPools()]);
-    const accessDb = loadAccessDb();
+    const [latestPool, pools, accessDb] = await Promise.all([
+      fetchLatestPool(),
+      fetchPools(),
+      loadAccessDb()
+    ]);
 
     const goalPoolByAddress = new Map(
       pools.map((pool) => [pool.address.toLowerCase(), pool])
@@ -82,4 +85,3 @@ export async function GET(request: Request) {
     );
   }
 }
-
