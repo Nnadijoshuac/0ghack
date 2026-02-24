@@ -8,13 +8,15 @@ type AppTopbarProps = {
   subtitle: string;
   ctaHref?: string;
   ctaLabel?: string;
+  ctaOnClick?: (() => void) | undefined;
 };
 
 export default function AppTopbar({
   title,
   subtitle,
   ctaHref = "/app/create-pool",
-  ctaLabel = "+ Create Pool"
+  ctaLabel = "+ Create Pool",
+  ctaOnClick
 }: AppTopbarProps) {
   return (
     <header className="poolfi-topbar">
@@ -39,11 +41,16 @@ export default function AppTopbar({
             height={18}
           />
         </button>
-        <Link href={ctaHref} className="create-pool-btn">
-          {ctaLabel}
-        </Link>
+        {ctaOnClick ? (
+          <button type="button" className="create-pool-btn" onClick={ctaOnClick}>
+            {ctaLabel}
+          </button>
+        ) : (
+          <Link href={ctaHref} className="create-pool-btn">
+            {ctaLabel}
+          </Link>
+        )}
       </div>
     </header>
   );
 }
-

@@ -2957,6 +2957,428 @@ p {
   border-radius: 0;
 }
 
+.impact-owner-content {
+  padding: 6.8rem 1.1rem 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.impact-owner-hero {
+  background: linear-gradient(135deg, #2451cf 0%, #2f5bd8 100%);
+  border-radius: 0.95rem;
+  color: #fff;
+  padding: 0.85rem 0.95rem;
+  position: relative;
+}
+
+.impact-owner-hero-actions {
+  position: absolute;
+  top: 0.82rem;
+  right: 0.9rem;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.impact-hero-btn {
+  height: 2rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: #fff;
+  color: #1f2738;
+  font-weight: 700;
+  padding: 0 0.75rem;
+  cursor: pointer;
+}
+
+.impact-hero-btn.ghost {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+}
+
+.impact-owner-chip {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.16rem 0.62rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.impact-owner-hero h1 {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: 2.1rem;
+  line-height: 1.14;
+}
+
+.impact-owner-meta {
+  margin: 0.38rem 0 0;
+  color: rgba(215, 229, 255, 0.95);
+  font-size: 0.8rem;
+}
+
+.impact-owner-kpis {
+  margin-top: 0.68rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.58rem;
+}
+
+.impact-owner-kpis article {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 0.72rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.62rem 0.72rem;
+}
+
+.impact-owner-kpis span {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.67rem;
+  color: rgba(200, 217, 255, 0.95);
+}
+
+.impact-owner-kpis h3 {
+  margin: 0.2rem 0 0.12rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.95rem;
+}
+
+.impact-owner-kpis p {
+  margin: 0;
+  color: rgba(196, 213, 255, 0.92);
+  font-size: 0.75rem;
+}
+
+.impact-owner-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(290px, 0.7fr);
+  gap: 0.72rem;
+  align-items: start;
+}
+
+.impact-owner-main,
+.impact-owner-side {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.impact-owner-progress-card {
+  border: 1px solid #dde4ef;
+  border-radius: 0.92rem;
+  background: #fff;
+  padding: 0.78rem 0.92rem;
+}
+
+.impact-owner-table {
+  border: 1px solid #dde4ef;
+  border-radius: 0.92rem;
+  background: #fff;
+  overflow: hidden;
+}
+
+.impact-owner-tabs {
+  display: flex;
+  gap: 0.4rem;
+  border-bottom: 1px solid #e4eaf3;
+  padding: 0.62rem 0.7rem 0;
+}
+
+.impact-owner-tabs button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #6f7b91;
+  font-weight: 600;
+  padding: 0.45rem 0.12rem 0.48rem;
+}
+
+.impact-owner-tabs button.active {
+  color: #2451cf;
+  border-bottom-color: #2451cf;
+}
+
+.impact-owner-count {
+  margin: 0.48rem 0.7rem 0;
+  color: #7a859b;
+}
+
+.impact-export-btn {
+  margin: 0.38rem 0.7rem 0.55rem;
+  border: 1px solid #d8dfeb;
+  border-radius: 0.6rem;
+  height: 2.1rem;
+  padding: 0 0.75rem;
+  background: #fff;
+  color: #33425d;
+  font-weight: 700;
+}
+
+.impact-owner-head {
+  display: grid;
+  grid-template-columns: 1.6fr 0.6fr 0.8fr 1fr;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  border-top: 1px solid #e4eaf3;
+  border-bottom: 1px solid #e4eaf3;
+  color: #7a859b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.67rem;
+  font-weight: 700;
+}
+
+.impact-owner-table ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.impact-owner-table li {
+  display: grid;
+  grid-template-columns: 1.6fr 0.6fr 0.8fr 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.62rem 0.7rem;
+  border-top: 1px solid #e8edf5;
+}
+
+.impact-owner-withdraw-head {
+  grid-template-columns: 0.9fr 0.75fr 0.95fr 0.7fr 0.75fr;
+}
+
+.impact-owner-withdraw-list li {
+  grid-template-columns: 0.9fr 0.75fr 0.95fr 0.7fr 0.75fr;
+}
+
+.impact-withdraw-id {
+  margin: 0;
+  font-weight: 700;
+  color: #22304a;
+}
+
+.impact-withdraw-approvals {
+  margin: 0;
+  color: #4d5a74;
+  font-weight: 600;
+}
+
+.impact-owner-updates-empty {
+  padding: 1.1rem 0.8rem 1.25rem;
+  display: grid;
+  justify-items: start;
+  gap: 0.65rem;
+}
+
+.impact-owner-updates-empty p {
+  margin: 0;
+  color: #6f7b91;
+}
+
+.impact-owner-amount {
+  color: #12b76a;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+}
+
+.impact-owner-status {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.impact-owner-status.approved {
+  background: #def7ea;
+  color: #119e5a;
+}
+
+.impact-owner-status.reviewing {
+  background: #f2e8ff;
+  color: #7c3aed;
+}
+
+.impact-owner-status.idle {
+  background: #eef2f9;
+  color: #7a859b;
+}
+
+.impact-withdrawal-card {
+  border: 1px solid #d9cdf7;
+  border-radius: 0.92rem;
+  background: #f6f1ff;
+  padding: 0.75rem;
+}
+
+.impact-withdrawal-card h4 {
+  margin: 0;
+  color: #6a40cc;
+  font-family: var(--font-display), sans-serif;
+}
+
+.impact-withdrawal-card p {
+  margin: 0.45rem 0 0;
+  color: #6f5ea8;
+}
+
+.impact-withdrawal-card h3 {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-display), sans-serif;
+  color: #6f3ed2;
+  font-size: 2.1rem;
+}
+
+.impact-owner-withdraw-progress {
+  margin-top: 0.55rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.28rem;
+}
+
+.impact-owner-withdraw-progress span {
+  height: 5px;
+  border-radius: 999px;
+  background: #d6dcec;
+}
+
+.impact-owner-withdraw-progress .ok {
+  background: #12b76a;
+}
+
+.impact-owner-withdraw-progress .pending {
+  background: #f59e0b;
+}
+
+.impact-withdrawal-card small {
+  margin-top: 0.55rem;
+  display: block;
+  color: #6a45c7;
+}
+
+.withdrawal-modal {
+  width: min(760px, 100%);
+  border-radius: 1.1rem;
+  overflow: hidden;
+}
+
+.withdrawal-modal h2 {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #dfe5ef;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.65rem;
+}
+
+.withdraw-help {
+  margin: 0.82rem 1rem 0;
+  border: 1px solid #d9e0eb;
+  border-radius: 0.95rem;
+  min-height: 6rem;
+  padding: 1rem;
+  color: #67748d;
+  line-height: 1.55;
+}
+
+.withdraw-note {
+  margin: 0.75rem 1rem 0;
+  border: 1px solid #c8d6f6;
+  background: #eef3ff;
+  border-radius: 0.88rem;
+  padding: 0.9rem 1rem;
+  color: #2e58bc;
+  line-height: 1.5;
+}
+
+.withdraw-form {
+  margin: 0.78rem 1rem 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.withdraw-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: #20283a;
+  font-weight: 600;
+}
+
+.withdraw-form input,
+.withdraw-form textarea {
+  height: 2.55rem;
+  border: 1px solid #d7deea;
+  border-radius: 0.65rem;
+  padding: 0 0.78rem;
+  font: inherit;
+}
+
+.withdraw-form textarea {
+  min-height: 5.2rem;
+  resize: vertical;
+  padding-top: 0.75rem;
+}
+
+.withdraw-money {
+  display: grid;
+  grid-template-columns: 2.3rem 1fr;
+}
+
+.withdraw-money span {
+  border: 1px solid #d7deea;
+  border-right: 0;
+  border-radius: 0.65rem 0 0 0.65rem;
+  display: grid;
+  place-items: center;
+  color: #7a869d;
+  background: #f8faff;
+}
+
+.withdraw-money input {
+  border-radius: 0 0.65rem 0.65rem 0;
+}
+
+.withdraw-form small {
+  color: #a3acbc;
+  font-weight: 400;
+  margin-top: -0.15rem;
+}
+
+.withdraw-upload {
+  margin-top: 0.2rem;
+}
+
+.withdraw-actions {
+  margin-top: 0.9rem;
+  border-top: 1px solid #e2e8f2;
+  padding: 0.9rem 1rem 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.62rem;
+}
+
+.update-modal {
+  width: min(680px, 100%);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.update-modal h2 {
+  margin: 0;
+  padding: 0.9rem 1rem 0.2rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.5rem;
+}
+
+.update-modal > p {
+  margin: 0;
+  padding: 0 1rem 0.7rem;
+  color: #6f7b91;
+}
+
 .mypools-content {
   padding: 6.8rem 1.1rem 1.1rem;
   gap: 0.8rem;
@@ -3311,58 +3733,66 @@ p {
 
 .spotlight {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.45rem;
 }
 
 .spotlight-row {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(360px, 1fr);
-  gap: 0.9rem;
+  grid-auto-columns: minmax(338px, 338px);
+  gap: 0.7rem;
   overflow-x: auto;
-  padding-bottom: 0.35rem;
+  padding-bottom: 0.2rem;
 }
 
 .spot-card {
   background: linear-gradient(140deg, #2451cf 0%, #2e5cdb 100%);
-  border-radius: 1rem;
-  padding: 0.95rem 0.95rem 0.85rem;
+  border-radius: 0.95rem;
+  padding: 0.72rem 0.78rem 0.78rem;
   color: #fff;
   display: grid;
-  gap: 0.58rem;
-  min-height: 322px;
+  gap: 0.48rem;
+  min-height: 252px;
 }
 
 .featured-tag {
   margin: 0;
-  width: fit-content;
+  width: 126px;
+  height: 20px;
   border-radius: 999px;
-  padding: 0.2rem 0.58rem;
+  padding: 0 0.55rem;
   background: rgba(255, 255, 255, 0.12);
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
+  font-size: 0.58rem;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.featured-tag span {
+  line-height: 1;
 }
 
 .spot-card h4 {
   margin: 0;
-  font-size: 1.02rem;
-  line-height: 1.35;
-  min-height: 2.75rem;
+  font-size: 2.02rem;
+  line-height: 1.1;
+  min-height: 4.15rem;
 }
 
 .spot-desc {
   margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.45;
+  font-size: 1.05rem;
+  line-height: 1.42;
   color: rgba(214, 227, 255, 0.92);
-  min-height: 3.4rem;
+  min-height: 4.2rem;
 }
 
 .spot-progress {
   width: 100%;
-  height: 5px;
+  height: 6px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.2);
   overflow: hidden;
@@ -3379,26 +3809,26 @@ p {
   justify-content: space-between;
   align-items: center;
   gap: 0.6rem;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: rgba(207, 224, 255, 0.9);
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-body), sans-serif;
   font-weight: 700;
   letter-spacing: 0;
 }
 
 .spot-meta strong {
   color: #fff;
-  margin-right: 0.25rem;
+  margin-right: 0.2rem;
 }
 
 .spot-card button {
   border: 0;
-  border-radius: 0.7rem;
-  height: 2.5rem;
+  border-radius: 0.62rem;
+  height: 2.28rem;
   background: #fff;
   color: #2451cf;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.86rem;
   cursor: pointer;
 }
 
@@ -3910,6 +4340,14 @@ p {
     grid-template-columns: 1fr;
   }
 
+  .impact-owner-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .impact-owner-kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .mypools-kpis {
     grid-template-columns: 1fr 1fr;
   }
@@ -4031,6 +4469,20 @@ p {
   }
 
   .mypools-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .impact-owner-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .impact-owner-head,
+  .impact-owner-table li {
+    grid-template-columns: 1fr;
+  }
+
+  .impact-owner-withdraw-head,
+  .impact-owner-withdraw-list li {
     grid-template-columns: 1fr;
   }
 

@@ -203,7 +203,10 @@ export default function AppPage() {
         <div className="spotlight-row">
           {spotlightPools.map((pool) => (
             <article key={pool.id} className="spot-card">
-              <p className="featured-tag">Featured Pool</p>
+              <p className="featured-tag">
+                <span>FEATURED</span>
+                <span>POOL</span>
+              </p>
               <h4>{pool.title}</h4>
               <p className="spot-desc">{pool.description}</p>
               <div className="spot-progress">

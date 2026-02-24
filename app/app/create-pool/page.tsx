@@ -802,7 +802,7 @@ export default function CreatePoolPage() {
                 className="modal-primary"
                 onClick={() => {
                   setImpactSubmitted(false);
-                  router.push("/app/my-pools");
+                  router.push("/app/impact/creator");
                 }}
               >
                 Back to My Pools -&gt;
