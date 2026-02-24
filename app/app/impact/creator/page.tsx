@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import AppTopbar from "@/components/app-topbar";
 import { toMoney } from "@/lib/backend/format";
 
@@ -52,7 +51,7 @@ type UpdateRecord = {
 };
 
 export default function ImpactCreatorPage() {
-  const searchParams = useSearchParams();
+  const [poolIdQuery, setPoolIdQuery] = useState("");
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [activeTab, setActiveTab] = useState<OwnerTab>("contributors");
@@ -73,7 +72,10 @@ export default function ImpactCreatorPage() {
     referenceLink: ""
   });
 
-  const poolIdQuery = searchParams.get("poolId") || "";
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setPoolIdQuery(params.get("poolId") || "");
+  }, []);
 
   const loadCreatorData = async () => {
     const q = poolIdQuery ? `?poolId=${encodeURIComponent(poolIdQuery)}` : "";
