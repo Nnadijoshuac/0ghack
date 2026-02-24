@@ -6,7 +6,7 @@ It supports two pool models in product design:
 - Goal Pool: private, invite-only
 - Impact Pool: public to all PoolFi users
 
-This submission implements the full frontend prototype with 0G testnet integration points, plus on-chain Goal Pool creation.
+This submission implements the frontend prototype, on-chain Goal Pool creation, and backend APIs for Impact creator operations with 0G-aware persistence.
 
 ## What Is Implemented
 
@@ -17,6 +17,8 @@ This submission implements the full frontend prototype with 0G testnet integrati
 - Dashboard, My Pools, Impact, Pool Manager pages
 - Canonical Create Pool flow (modal -> wizard)
 - Goal Pool launch on-chain through PoolFactory
+- Impact creator dashboard (`/app/impact/creator`)
+- Impact creator operations via API: register pool, post updates, request withdrawals, withdrawal history
 
 ## Tech Stack
 
@@ -54,6 +56,7 @@ Set these in `.env.local` (template in `.env.example`):
 
 3. 0G-ready backend surface
 - App Router API endpoints (`/api/v1/*`) provide the read/write surface for dashboard, pools, impact, and auth with 0G-aware config.
+- Pool access + impact creator records use server persistence with optional 0G Storage sync (same pattern as auth DB).
 
 Not yet fully completed in this submission:
 - Dedicated public Impact Pool on-chain launch flow.
@@ -96,6 +99,7 @@ npm run dev
 - `/app`
 - `/app/create-pool`
 - `/app/impact`
+- `/app/impact/creator`
 - `/app/my-pools`
 - `/app/pool-manager`
 
@@ -106,6 +110,12 @@ npm run dev
 - `GET /api/v1/auth/me`
 - `GET /api/v1/dashboard`
 - `GET /api/v1/impact`
+- `POST /api/v1/impact/register`
+- `GET /api/v1/impact/creator`
+- `GET /api/v1/impact/:poolId/updates`
+- `POST /api/v1/impact/:poolId/updates`
+- `GET /api/v1/impact/:poolId/withdrawals`
+- `POST /api/v1/impact/:poolId/withdrawals`
 - `GET /api/v1/pools`
 - `GET /api/v1/pools/latest`
 - `GET /api/v1/pools/:poolId/members`
@@ -126,12 +136,13 @@ Frontend on-chain calls:
 - Vercel/serverless environments are ephemeral.  
   Use `AUTH_DB_DIR=/tmp/poolfi-data` for local file fallback.
 - If 0G Storage env vars + private key are present, auth DB is uploaded and synced via 0G Storage.
+- Pool access/impact creator DB uses the same optional 0G Storage sync path.
 
 ## Current Scope / Known Gaps
 
 - Goal Pool flow is the active on-chain launch path.
-- Impact Pool is represented in UI and product direction, but its dedicated launch backend flow is next.
-- Some pages use scaffolded/demo state for presentation while chain-backed flows are being finalized.
+- Impact creator flow is backend-enabled (register, updates, withdrawals, history) but currently off-chain.
+- Dedicated ImpactPool smart contract deployment/invocation is the next on-chain step.
 
 ## Submission Summary
 
@@ -139,4 +150,5 @@ This submission demonstrates:
 - a complete UX flow from auth to pool creation,
 - a 0G testnet-aware architecture,
 - smart contract pool creation from the frontend,
-- and a clear path to complete public Impact Pool backend logic.
+- backend-enabled Impact creator operations,
+- and a clear path to complete on-chain ImpactPool execution.
