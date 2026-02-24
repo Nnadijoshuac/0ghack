@@ -1,12 +1,19 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { fetchPoolMembers, fetchPools } from "@/lib/backend/chain-read";
+import { getSessionFromRequest } from "@/lib/auth/request-session";
+import { canAccessPool, loadAccessDb } from "@/lib/backend/pool-access";
 
 type Context = {
   params: Promise<{ poolId: string }>;
 };
 
-export async function GET(_: Request, context: Context) {
+export async function GET(request: Request, context: Context) {
   try {
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { poolId } = await context.params;
     const pools = await fetchPools();
 
@@ -20,6 +27,14 @@ export async function GET(_: Request, context: Context) {
       return NextResponse.json({ error: "Pool not found" }, { status: 404 });
     }
 
+    const accessDb = loadAccessDb();
+    const accessPool = accessDb.pools.find(
+      (item) => item.type === "GOAL" && item.address?.toLowerCase() === pool.address.toLowerCase()
+    );
+    if (accessPool && !canAccessPool(accessPool, session)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const members = await fetchPoolMembers(pool.address);
     return NextResponse.json({ pool, members });
   } catch (error) {
@@ -29,3 +44,4 @@ export async function GET(_: Request, context: Context) {
     );
   }
 }
+

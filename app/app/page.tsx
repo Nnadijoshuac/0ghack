@@ -86,15 +86,13 @@ export default function AppPage() {
     return data.pools
       .slice()
       .reverse()
-      .map((pool, index) => ({
-        icon:
-          index === 0
-            ? "/images/dashboard/my-pools.png"
-            : index === 1
-              ? "/images/dashboard/wallet.png"
-              : "/images/dashboard/impact.png",
+      .map((pool) => ({
+        icon: pool.type === "GOAL" ? "/images/dashboard/my-pools.png" : "/images/dashboard/impact.png",
         name: pool.name,
-        meta: `${index === 0 ? "Admin" : "Contributor"}  ${pool.contributorsPaid} contributors`,
+        meta:
+          pool.type === "GOAL"
+            ? `Private goal pool - ${pool.contributorsPaid} contributors`
+            : "Joined impact pool",
         raised: toMoney(pool.raised),
         target: toMoney(pool.target),
         progress: toPercent(pool.raised, pool.target),
@@ -102,9 +100,9 @@ export default function AppPage() {
           pool.contributorsTotal > pool.contributorsPaid
             ? `${pool.contributorsTotal - pool.contributorsPaid} yet to pay`
             : `${pool.contributorsPaid} contributors paid`,
-        footRight: index === 0 ? `Pool: ${pool.address.slice(0, 10)}...` : "",
-        action: index === 0 ? "Manage ->" : "View Pool ->",
-        href: index === 0 ? "/app/pool-manager" : "/app/my-pools",
+        footRight: `Pool: ${pool.address.slice(0, 10)}...`,
+        action: pool.type === "GOAL" ? "Manage ->" : "View Pool ->",
+        href: pool.type === "GOAL" ? "/app/pool-manager" : "/app/impact",
         actionColor: "blue"
       }));
   }, [data]);

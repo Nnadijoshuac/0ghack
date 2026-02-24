@@ -1271,11 +1271,11 @@ p {
 .balance-head span {
   font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   color: rgba(190, 213, 255, 0.8);
   font-family: var(--font-display), sans-serif;
   font-weight: 700;
-  letter-spacing: -2px;
+  word-spacing: 0.06rem;
 }
 
 .balance-actions {

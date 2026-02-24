@@ -77,6 +77,19 @@ export default function CreatePoolPage() {
         })
       });
 
+      await fetch("/api/v1/pools/register-goal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          address: result.poolAddress,
+          name: form.name,
+          category: form.category,
+          target: Number(form.target || 0),
+          contributionPerPerson: Number(form.contribution || 0),
+          invitedMembers: invitees
+        })
+      });
+
       setPoolAddress(result.poolAddress);
       localStorage.setItem("poolfi_last_pool_address", result.poolAddress);
       setLaunched(true);

@@ -1,4 +1,8 @@
-﻿import Link from "next/link";
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { toMoney } from "@/lib/backend/format";
 
 const categories = [
   "All",
@@ -11,33 +15,88 @@ const categories = [
   "Energy"
 ];
 
-const impactStats = {
-  totalRaisedLabel: "N48.2M",
-  contributorsLabel: "1,240",
-  activePools: "34",
-  completedLabel: "12"
+type ImpactCard = {
+  id: string;
+  title: string;
+  desc: string;
+  raised: number;
+  target: number;
+  contributors: number;
+  progress: number;
+  joined: boolean;
+  category: string;
 };
 
-const impactFeatured = {
-  title: "Clean Water Borehole for Oguta Community, Imo State",
-  description:
-    "3,000+ residents walk 2km daily for water. This pool funds a functional borehole and distribution network.",
-  raisedLabel: "N670,000",
-  targetLabel: "N1,000,000",
-  progress: 67
+type ImpactResponse = {
+  stats: {
+    totalRaisedLabel: string;
+    contributorsLabel: string;
+    activePools: string;
+    completedLabel: string;
+  };
+  featured: ImpactCard | null;
+  cards: ImpactCard[];
+  error?: string;
 };
-
-const impactCards = Array.from({ length: 6 }, (_, idx) => ({
-  id: `impact-${idx + 1}`,
-  title: "Scholarship Fund for Indigent UNIBEN Students",
-  desc: "Supporting 20 students who cannot afford fees this semester.",
-  raisedLabel: "N270,000",
-  targetLabel: "N500,000",
-  progress: 54,
-  contributors: 128
-}));
 
 export default function ImpactPage() {
+  const [data, setData] = useState<ImpactResponse | null>(null);
+  const [error, setError] = useState("");
+  const [joiningPoolId, setJoiningPoolId] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/impact", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((payload: ImpactResponse) => {
+        if (cancelled) return;
+        setData(payload);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Failed to load impact pools");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const cards = useMemo(() => data?.cards ?? [], [data]);
+  const featured = data?.featured ?? null;
+
+  const joinPool = async (poolId: string) => {
+    try {
+      setJoiningPoolId(poolId);
+      const res = await fetch("/api/v1/impact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ poolId })
+      });
+      const payload = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setError(payload.error || "Failed to join pool");
+        return;
+      }
+
+      setData((prev) => {
+        if (!prev) return prev;
+        const nextCards = prev.cards.map((card) =>
+          card.id === poolId ? { ...card, joined: true, contributors: card.contributors + 1 } : card
+        );
+        return {
+          ...prev,
+          cards: nextCards,
+          featured:
+            prev.featured && prev.featured.id === poolId
+              ? { ...prev.featured, joined: true, contributors: prev.featured.contributors + 1 }
+              : prev.featured
+        };
+      });
+    } finally {
+      setJoiningPoolId("");
+    }
+  };
+
   return (
     <section className="poolfi-content impact-content">
       <section className="impact-hero">
@@ -48,24 +107,24 @@ export default function ImpactPage() {
           With accountability built in.
         </h1>
         <p className="impact-sub">
-          Every impact pool is community-governed. Contributors vote to release funds,
-          so your money only moves when the cause deserves it.
+          Public pools created by PoolFi users. Join any impact pool and it will
+          appear on your homepage and My Pools.
         </p>
         <div className="impact-stats">
           <article>
-            <h3>{impactStats.totalRaisedLabel}</h3>
+            <h3>{data?.stats.totalRaisedLabel ?? "N0"}</h3>
             <p>Total Raised</p>
           </article>
           <article>
-            <h3>{impactStats.contributorsLabel}</h3>
+            <h3>{data?.stats.contributorsLabel ?? "0"}</h3>
             <p>Contributors</p>
           </article>
           <article>
-            <h3>{impactStats.activePools}</h3>
+            <h3>{data?.stats.activePools ?? "0"}</h3>
             <p>Active Pools</p>
           </article>
           <article>
-            <h3>{impactStats.completedLabel}</h3>
+            <h3>{data?.stats.completedLabel ?? "0"}</h3>
             <p>Completed</p>
           </article>
         </div>
@@ -80,47 +139,69 @@ export default function ImpactPage() {
         ))}
       </section>
 
-      <p className="featured-label">Featured Pool</p>
-      <section className="impact-featured">
-        <div>
-          <p className="featured-badge">Featured - Verified</p>
-          <h2>{impactFeatured.title}</h2>
-          <p>{impactFeatured.description}</p>
-          <div className="featured-tags">
-            <span>Water</span>
-            <span>Imo State</span>
-            <span>Community</span>
-            <span>Verified</span>
-          </div>
-        </div>
-        <aside className="featured-contribute">
-          <h3>{impactFeatured.raisedLabel}</h3>
-          <p>{impactFeatured.progress}%</p>
-          <div className="featured-progress">
-            <div style={{ width: `${impactFeatured.progress}%` }} />
-          </div>
-          <button type="button">Contribute to this Pool -&gt;</button>
-        </aside>
-      </section>
+      {error ? <p className="cp-note">{error}</p> : null}
+
+      {featured ? (
+        <>
+          <p className="featured-label">Featured Pool</p>
+          <section className="impact-featured">
+            <div>
+              <p className="featured-badge">Featured - Verified</p>
+              <h2>{featured.title}</h2>
+              <p>{featured.desc}</p>
+              <div className="featured-tags">
+                <span>{featured.category}</span>
+                <span>Community</span>
+                <span>Public</span>
+                <span>Verified</span>
+              </div>
+            </div>
+            <aside className="featured-contribute">
+              <h3>{toMoney(featured.raised)}</h3>
+              <p>{featured.progress}%</p>
+              <div className="featured-progress">
+                <div style={{ width: `${featured.progress}%` }} />
+              </div>
+              <button
+                type="button"
+                onClick={() => joinPool(featured.id)}
+                disabled={featured.joined || joiningPoolId === featured.id}
+              >
+                {featured.joined
+                  ? "Joined"
+                  : joiningPoolId === featured.id
+                    ? "Joining..."
+                    : "Join Pool ->"}
+              </button>
+            </aside>
+          </section>
+        </>
+      ) : null}
 
       <section className="impact-grid">
-        {impactCards.map((card) => (
+        {cards.map((card) => (
           <article key={card.id} className="impact-card">
-            <p className="impact-card-type">Education</p>
+            <p className="impact-card-type">{card.category}</p>
             <h3>{card.title}</h3>
             <p className="impact-card-desc">{card.desc}</p>
             <div className="impact-card-progress">
               <div style={{ width: `${card.progress}%` }} />
             </div>
             <p className="impact-card-meta">
-              <strong>{card.raisedLabel}</strong>
+              <strong>{toMoney(card.raised)}</strong>
               <span>
-                {card.progress}% of {card.targetLabel}
+                {card.progress}% of {toMoney(card.target)}
               </span>
             </p>
             <footer>
               <span>{card.contributors} contributors</span>
-              <button type="button">Give -&gt;</button>
+              <button
+                type="button"
+                onClick={() => joinPool(card.id)}
+                disabled={card.joined || joiningPoolId === card.id}
+              >
+                {card.joined ? "Joined" : joiningPoolId === card.id ? "Joining..." : "Join ->"}
+              </button>
             </footer>
           </article>
         ))}
@@ -133,3 +214,4 @@ export default function ImpactPage() {
     </section>
   );
 }
+

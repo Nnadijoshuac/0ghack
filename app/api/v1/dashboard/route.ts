@@ -1,33 +1,57 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { fetchLatestPool, fetchPools } from "@/lib/backend/chain-read";
-import { verifySessionToken } from "@/lib/auth/session";
-
-function getSessionTokenFromCookie(cookieHeader: string | null) {
-  if (!cookieHeader) return undefined;
-  const match = cookieHeader.match(/poolfi_session=([^;]+)/);
-  return match?.[1];
-}
+import { getSessionFromRequest } from "@/lib/auth/request-session";
+import { isPoolVisibleOnHome, loadAccessDb } from "@/lib/backend/pool-access";
 
 export async function GET(request: Request) {
   try {
+    const session = getSessionFromRequest(request);
+    const pseudonym = session?.pseudonym?.trim() || "Builder";
+
     const [latestPool, pools] = await Promise.all([fetchLatestPool(), fetchPools()]);
+    const accessDb = loadAccessDb();
 
-    const token = getSessionTokenFromCookie(request.headers.get("cookie"));
-    const session = verifySessionToken(token);
-    const pseudonym =
-      typeof session?.pseudonym === "string" && session.pseudonym.trim().length > 0
-        ? session.pseudonym
-        : "Builder";
+    const goalPoolByAddress = new Map(
+      pools.map((pool) => [pool.address.toLowerCase(), pool])
+    );
 
-    const totalRaised = pools.reduce((sum, item) => sum + item.raised, 0);
+    const visibleGoals = accessDb.pools
+      .filter((item) => item.type === "GOAL" && isPoolVisibleOnHome(item, session))
+      .map((item) => {
+        if (!item.address) return null;
+        return goalPoolByAddress.get(item.address.toLowerCase()) ?? null;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
 
-    const recentActivity = latestPool
+    const visibleImpacts = accessDb.pools
+      .filter((item) => item.type === "IMPACT" && isPoolVisibleOnHome(item, session))
+      .map((item) => ({
+        id: item.id,
+        address: item.id,
+        type: item.type,
+        name: item.name,
+        category: item.category,
+        target: item.target,
+        raised: item.raised,
+        contributionPerPerson: item.contributionPerPerson,
+        contributorsPaid: 0,
+        contributorsTotal: 0,
+        startAtISO: item.createdAtISO,
+        deadlineISO: item.updatedAtISO,
+        status: "ACTIVE" as const,
+        adminAddress: "public"
+      }));
+
+    const visiblePools = [...visibleGoals, ...visibleImpacts];
+    const totalRaised = visiblePools.reduce((sum, item) => sum + item.raised, 0);
+
+    const recentActivity = visiblePools.length > 0
       ? [
           {
             icon: "POOL",
-            title: "Latest pool synced",
+            title: "Pools synced",
             time: new Date().toLocaleString(),
-            amount: latestPool.name,
+            amount: `${visiblePools.length} pool(s)`,
             positive: null
           }
         ]
@@ -44,8 +68,11 @@ export async function GET(request: Request) {
         available: 0,
         locked: totalRaised
       },
-      pools,
-      latestPool,
+      pools: visiblePools,
+      latestPool:
+        visiblePools.find((pool) => pool.address === latestPool?.address) ??
+        visiblePools[visiblePools.length - 1] ??
+        null,
       recentActivity
     });
   } catch (error) {
@@ -55,3 +82,4 @@ export async function GET(request: Request) {
     );
   }
 }
+
