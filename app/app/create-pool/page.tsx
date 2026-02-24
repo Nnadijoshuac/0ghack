@@ -521,7 +521,7 @@ export default function CreatePoolPage() {
             <article className="wizard-preview-card">
               <div className="preview-top">
                 <p className="preview-eyebrow">
-                  {poolKind === "impact" ? "Impact Pool - Public" : "Goal Pool - Private"}
+                  Goal Pool - Private
                 </p>
                 <h4>{form.name || "Your pool name..."}</h4>
                 <p className="preview-desc">{form.description || "Add a description above"}</p>
