@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth/request-session";
-import { registerGoalPool } from "@/lib/backend/pool-access";
+import { registerImpactPool } from "@/lib/backend/pool-access";
 
 export async function POST(request: Request) {
   try {
@@ -10,32 +10,30 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as {
-      address?: string;
       name?: string;
       category?: string;
+      description?: string;
       target?: number;
       contributionPerPerson?: number;
-      invitedMembers?: string[];
     };
 
-    if (!body.address || !body.name) {
-      return NextResponse.json({ error: "address and name are required" }, { status: 400 });
+    if (!body.name?.trim()) {
+      return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
 
-    const pool = await registerGoalPool({
+    const pool = await registerImpactPool({
       session,
-      address: body.address,
-      name: body.name,
-      category: body.category || "General",
+      name: body.name.trim(),
+      category: body.category?.trim() || "General",
+      description: body.description?.trim() || "",
       target: Number(body.target ?? 0),
-      contributionPerPerson: Number(body.contributionPerPerson ?? 0),
-      invitedMembers: Array.isArray(body.invitedMembers) ? body.invitedMembers : []
+      contributionPerPerson: Number(body.contributionPerPerson ?? 0)
     });
 
     return NextResponse.json({ ok: true, pool });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to register goal pool" },
+      { error: error instanceof Error ? error.message : "Failed to register impact pool" },
       { status: 500 }
     );
   }

@@ -27,7 +27,7 @@ export async function GET(request: Request, context: Context) {
       return NextResponse.json({ error: "Pool not found" }, { status: 404 });
     }
 
-    const accessDb = loadAccessDb();
+    const accessDb = await loadAccessDb();
     const accessPool = accessDb.pools.find(
       (item) => item.type === "GOAL" && item.address?.toLowerCase() === pool.address.toLowerCase()
     );
@@ -44,4 +44,3 @@ export async function GET(request: Request, context: Context) {
     );
   }
 }
-

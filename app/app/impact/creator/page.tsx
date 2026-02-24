@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import AppTopbar from "@/components/app-topbar";
 import { toMoney } from "@/lib/backend/format";
 
@@ -14,21 +15,156 @@ const contributors = [
   { initials: "SF", name: "Segun Fashola", handle: "BlueMoon#2287", amount: 2000, date: "Feb 15, 2026", status: "Approved" }
 ];
 
-const withdrawals = [
-  { id: "REQ-003", amount: 300000, date: "Feb 18, 2026", approvals: "2/3", status: "Reviewing" },
-  { id: "REQ-002", amount: 150000, date: "Feb 10, 2026", approvals: "3/3", status: "Approved" },
-  { id: "REQ-001", amount: 80000, date: "Jan 29, 2026", approvals: "3/3", status: "Released" }
-];
-
 type OwnerTab = "contributors" | "updates" | "withdrawals";
 
+type CreatorPool = {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  target: number;
+  raised: number;
+  contributionPerPerson: number;
+  updatesCount: number;
+  withdrawalsCount: number;
+  createdAtISO: string;
+  updatedAtISO: string;
+};
+
+type WithdrawalRecord = {
+  id: string;
+  amount: number;
+  purpose: string;
+  vendor: string;
+  stage: string;
+  approvals: number;
+  requiredApprovals: number;
+  status: "PENDING" | "APPROVED" | "RELEASED" | "REJECTED";
+  createdAtISO: string;
+};
+
+type UpdateRecord = {
+  id: string;
+  title: string;
+  details: string;
+  referenceLink?: string;
+  createdAtISO: string;
+};
+
 export default function ImpactCreatorPage() {
+  const searchParams = useSearchParams();
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [activeTab, setActiveTab] = useState<OwnerTab>("contributors");
-  const raised = 670000;
-  const target = 1000000;
-  const progress = Math.round((raised / target) * 100);
+  const [pool, setPool] = useState<CreatorPool | null>(null);
+  const [withdrawals, setWithdrawals] = useState<WithdrawalRecord[]>([]);
+  const [updates, setUpdates] = useState<UpdateRecord[]>([]);
+  const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [withdrawForm, setWithdrawForm] = useState({
+    amount: "",
+    purpose: "",
+    vendor: "",
+    stage: ""
+  });
+  const [updateForm, setUpdateForm] = useState({
+    title: "",
+    details: "",
+    referenceLink: ""
+  });
+
+  const poolIdQuery = searchParams.get("poolId") || "";
+
+  const loadCreatorData = async () => {
+    const q = poolIdQuery ? `?poolId=${encodeURIComponent(poolIdQuery)}` : "";
+    const poolRes = await fetch(`/api/v1/impact/creator${q}`, { cache: "no-store" });
+    const poolPayload = (await poolRes.json()) as { error?: string; pool?: CreatorPool | null };
+    if (!poolRes.ok) throw new Error(poolPayload.error || "Failed to load creator pool");
+    if (!poolPayload.pool) {
+      setPool(null);
+      setWithdrawals([]);
+      setUpdates([]);
+      return;
+    }
+    setPool(poolPayload.pool);
+
+    const [withdrawRes, updateRes] = await Promise.all([
+      fetch(`/api/v1/impact/${encodeURIComponent(poolPayload.pool.id)}/withdrawals`, { cache: "no-store" }),
+      fetch(`/api/v1/impact/${encodeURIComponent(poolPayload.pool.id)}/updates`, { cache: "no-store" })
+    ]);
+
+    const withdrawPayload = (await withdrawRes.json()) as { withdrawals?: WithdrawalRecord[] };
+    const updatePayload = (await updateRes.json()) as { updates?: UpdateRecord[] };
+    setWithdrawals(Array.isArray(withdrawPayload.withdrawals) ? withdrawPayload.withdrawals : []);
+    setUpdates(Array.isArray(updatePayload.updates) ? updatePayload.updates : []);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    setError("");
+    loadCreatorData().catch((err) => {
+      if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load creator page");
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poolIdQuery]);
+
+  const raised = pool?.raised ?? 670000;
+  const target = pool?.target ?? 1000000;
+  const progress = useMemo(() => (target > 0 ? Math.round((raised / target) * 100) : 0), [raised, target]);
+
+  const submitWithdrawal = async () => {
+    if (!pool?.id) return;
+    try {
+      setIsSaving(true);
+      setError("");
+      const res = await fetch(`/api/v1/impact/${encodeURIComponent(pool.id)}/withdrawals`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: Number(withdrawForm.amount || 0),
+          purpose: withdrawForm.purpose,
+          vendor: withdrawForm.vendor,
+          stage: withdrawForm.stage
+        })
+      });
+      const payload = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(payload.error || "Failed to submit withdrawal");
+      setWithdrawForm({ amount: "", purpose: "", vendor: "", stage: "" });
+      setShowWithdrawModal(false);
+      await loadCreatorData();
+      setActiveTab("withdrawals");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to submit withdrawal");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const submitUpdate = async () => {
+    if (!pool?.id) return;
+    try {
+      setIsSaving(true);
+      setError("");
+      const res = await fetch(`/api/v1/impact/${encodeURIComponent(pool.id)}/updates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateForm)
+      });
+      const payload = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(payload.error || "Failed to publish update");
+      setUpdateForm({ title: "", details: "", referenceLink: "" });
+      setShowUpdateModal(false);
+      await loadCreatorData();
+      setActiveTab("updates");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to publish update");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <section className="poolfi-content impact-owner-content">
@@ -44,7 +180,7 @@ export default function ImpactCreatorPage() {
           <button
             type="button"
             className="impact-hero-btn ghost"
-            onClick={() => navigator.clipboard.writeText("poolfi.app/impact/oguta-water")}
+            onClick={() => navigator.clipboard.writeText(`poolfi.app/impact/${pool?.id ?? "pool"}`)}
           >
             Share Link
           </button>
@@ -53,8 +189,8 @@ export default function ImpactCreatorPage() {
           </button>
         </div>
         <p className="impact-owner-chip">Live - Verified</p>
-        <h1>Clean Water Borehole for Oguta Community, Imo State</h1>
-        <p className="impact-owner-meta">Created Jan 20, 2026 - Closes Mar 15, 2026 - Water & Sanitation</p>
+        <h1>{pool?.name || "Impact Pool"}</h1>
+        <p className="impact-owner-meta">{pool?.category || "General"} - Creator View</p>
 
         <div className="impact-owner-kpis">
           <article>
@@ -69,16 +205,18 @@ export default function ImpactCreatorPage() {
           </article>
           <article>
             <span>Released</span>
-            <h3>{toMoney(150000)}</h3>
-            <p>1 approved withdrawal</p>
+            <h3>{toMoney(withdrawals.filter((x) => x.status === "RELEASED").reduce((s, x) => s + x.amount, 0))}</h3>
+            <p>released withdrawals</p>
           </article>
           <article>
             <span>In Pool</span>
-            <h3>{toMoney(470000)}</h3>
+            <h3>{toMoney(Math.max(0, raised - withdrawals.reduce((s, x) => s + x.amount, 0)))}</h3>
             <p>available to request</p>
           </article>
         </div>
       </section>
+
+      {error ? <p className="cp-note">{error}</p> : null}
 
       <section className="impact-owner-grid">
         <div className="impact-owner-main">
@@ -91,7 +229,7 @@ export default function ImpactCreatorPage() {
               <div style={{ width: `${progress}%` }} />
             </div>
             <div className="progress-meta">
-              <p>{toMoney(target - raised)} still needed to hit target</p>
+              <p>{toMoney(Math.max(0, target - raised))} still needed to hit target</p>
               <p>Target: {toMoney(target)}</p>
             </div>
           </article>
@@ -110,28 +248,27 @@ export default function ImpactCreatorPage() {
                 className={activeTab === "updates" ? "active" : ""}
                 onClick={() => setActiveTab("updates")}
               >
-                Updates (2)
+                Updates ({updates.length})
               </button>
               <button
                 type="button"
                 className={activeTab === "withdrawals" ? "active" : ""}
                 onClick={() => setActiveTab("withdrawals")}
               >
-                Withdrawals
+                Withdrawals ({withdrawals.length})
               </button>
             </div>
+
             {activeTab === "contributors" ? (
               <>
                 <p className="impact-owner-count">Showing 342 contributors</p>
                 <button type="button" className="impact-export-btn">Export CSV</button>
-
                 <div className="impact-owner-head">
                   <span>Contributor</span>
                   <span>Amount</span>
                   <span>Date</span>
                   <span>Approver Status</span>
                 </div>
-
                 <ul>
                   {contributors.map((person) => (
                     <li key={`${person.name}-${person.date}`}>
@@ -176,13 +313,15 @@ export default function ImpactCreatorPage() {
                     <li key={item.id}>
                       <p className="impact-withdraw-id">{item.id}</p>
                       <p className="impact-owner-amount">{toMoney(item.amount)}</p>
-                      <p className="person-time">{item.date}</p>
-                      <p className="impact-withdraw-approvals">{item.approvals}</p>
+                      <p className="person-time">{new Date(item.createdAtISO).toLocaleDateString()}</p>
+                      <p className="impact-withdraw-approvals">
+                        {item.approvals}/{item.requiredApprovals}
+                      </p>
                       <span
                         className={`impact-owner-status ${
-                          item.status === "Approved" || item.status === "Released"
+                          item.status === "APPROVED" || item.status === "RELEASED"
                             ? "approved"
-                            : item.status === "Reviewing"
+                            : item.status === "PENDING"
                               ? "reviewing"
                               : "idle"
                         }`}
@@ -197,7 +336,13 @@ export default function ImpactCreatorPage() {
 
             {activeTab === "updates" ? (
               <div className="impact-owner-updates-empty">
-                <p>2 updates have been posted by the creator.</p>
+                {updates.length === 0 ? <p>No updates yet.</p> : null}
+                {updates.map((item) => (
+                  <article key={item.id} className="cp-summary cp-summary-muted">
+                    <h4>{item.title}</h4>
+                    <p>{item.details}</p>
+                  </article>
+                ))}
                 <button type="button" className="impact-hero-btn" onClick={() => setShowUpdateModal(true)}>
                   Post New Update
                 </button>
@@ -211,30 +356,27 @@ export default function ImpactCreatorPage() {
             <h4>Pool Details</h4>
             <div className="rule-list">
               <p><span>Status</span><strong>Live & Verified</strong></p>
-              <p><span>Category</span><strong>Water & Sanitation</strong></p>
+              <p><span>Category</span><strong>{pool?.category || "General"}</strong></p>
               <p><span>Chain</span><strong>0G Testnet</strong></p>
               <p><span>Approvers</span><strong>3 of 5 required</strong></p>
-              <p><span>Deadline</span><strong>Mar 15, 2026</strong></p>
               <p><span>Anonymous</span><strong>Allowed</strong></p>
             </div>
           </article>
 
           <article className="impact-withdrawal-card">
             <h4>Active Withdrawal</h4>
-            <p>Request #2 is awaiting community approval.</p>
-            <h3>{toMoney(300000)}</h3>
+            <p>{withdrawals[0] ? `${withdrawals[0].id} is awaiting community approval.` : "No active request."}</p>
+            <h3>{toMoney(withdrawals[0]?.amount ?? 0)}</h3>
             <div className="impact-owner-withdraw-progress">
               <span className="ok" />
-              <span className="ok" />
+              <span className={withdrawals[0]?.approvals && withdrawals[0].approvals > 1 ? "ok" : ""} />
               <span className="pending" />
             </div>
-            <small>2 of 3 approvals received - waiting on 1 more</small>
-          </article>
-
-          <article className="side-card danger">
-            <h4>Pool Controls</h4>
-            <p>Closing your pool will stop new contributions and return locked funds to contributors.</p>
-            <button type="button">Close Pool & Refund Contributors</button>
+            <small>
+              {withdrawals[0]
+                ? `${withdrawals[0].approvals} of ${withdrawals[0].requiredApprovals} approvals received`
+                : "No pending approval"}
+            </small>
           </article>
         </aside>
       </section>
@@ -243,40 +385,53 @@ export default function ImpactCreatorPage() {
         <div className="modal-overlay" role="dialog" aria-modal="true">
           <section className="pool-modal withdrawal-modal">
             <h2>Request Withdrawal</h2>
-
             <div className="withdraw-help">
               Describe exactly what this withdrawal is for. PoolFi will randomly select contributors
               to review your request
             </div>
-
             <div className="withdraw-note">
               3 of 5 contributors will be randomly selected to approve this. You cannot choose who
               reviews it
             </div>
-
             <div className="withdraw-form">
               <label>
-                Amount to withdraw (₦)
+                Amount to withdraw (N)
                 <div className="withdraw-money">
-                  <span>₦</span>
-                  <input placeholder="400,000" />
+                  <span>N</span>
+                  <input
+                    placeholder="400,000"
+                    value={withdrawForm.amount}
+                    onChange={(event) => setWithdrawForm((prev) => ({ ...prev, amount: event.target.value.replace(/\D/g, "") }))}
+                  />
                 </div>
-                <small>₦470,000 available in pool</small>
+                <small>{toMoney(Math.max(0, raised - withdrawals.reduce((s, x) => s + x.amount, 0)))} available in pool</small>
               </label>
 
               <label>
                 Purpose
-                <textarea placeholder="What exactly will this money be used for?" />
+                <textarea
+                  placeholder="What exactly will this money be used for?"
+                  value={withdrawForm.purpose}
+                  onChange={(event) => setWithdrawForm((prev) => ({ ...prev, purpose: event.target.value }))}
+                />
               </label>
 
               <label>
                 Vendor/Recipient
-                <input placeholder="e.g AquaTech NG Ltd - invoice #ATN-2026-0214" />
+                <input
+                  placeholder="e.g AquaTech NG Ltd - invoice #ATN-2026-0214"
+                  value={withdrawForm.vendor}
+                  onChange={(event) => setWithdrawForm((prev) => ({ ...prev, vendor: event.target.value }))}
+                />
               </label>
 
               <label>
                 Project Stage
-                <input placeholder="e.g Phase 2 of 3 - Pump installation" />
+                <input
+                  placeholder="e.g Phase 2 of 3 - Pump installation"
+                  value={withdrawForm.stage}
+                  onChange={(event) => setWithdrawForm((prev) => ({ ...prev, stage: event.target.value }))}
+                />
               </label>
 
               <div className="impact-upload-box withdraw-upload">
@@ -296,8 +451,8 @@ export default function ImpactCreatorPage() {
               <button type="button" className="modal-secondary" onClick={() => setShowWithdrawModal(false)}>
                 Cancel
               </button>
-              <button type="button" className="modal-primary" onClick={() => setShowWithdrawModal(false)}>
-                Submit Request -&gt;
+              <button type="button" className="modal-primary" onClick={submitWithdrawal} disabled={isSaving}>
+                {isSaving ? "Submitting..." : "Submit Request ->"}
               </button>
             </div>
           </section>
@@ -313,15 +468,27 @@ export default function ImpactCreatorPage() {
             <div className="withdraw-form">
               <label>
                 Update Title
-                <input placeholder="e.g Borehole drilling completed" />
+                <input
+                  placeholder="e.g Borehole drilling completed"
+                  value={updateForm.title}
+                  onChange={(event) => setUpdateForm((prev) => ({ ...prev, title: event.target.value }))}
+                />
               </label>
               <label>
                 Update Details
-                <textarea placeholder="Write the latest progress, what changed, and what is next." />
+                <textarea
+                  placeholder="Write the latest progress, what changed, and what is next."
+                  value={updateForm.details}
+                  onChange={(event) => setUpdateForm((prev) => ({ ...prev, details: event.target.value }))}
+                />
               </label>
               <label>
                 Reference Link <span>optional</span>
-                <input placeholder="e.g photo album, invoice, proof document link" />
+                <input
+                  placeholder="e.g photo album, invoice, proof document link"
+                  value={updateForm.referenceLink}
+                  onChange={(event) => setUpdateForm((prev) => ({ ...prev, referenceLink: event.target.value }))}
+                />
               </label>
             </div>
 
@@ -329,8 +496,8 @@ export default function ImpactCreatorPage() {
               <button type="button" className="modal-secondary" onClick={() => setShowUpdateModal(false)}>
                 Cancel
               </button>
-              <button type="button" className="modal-primary" onClick={() => setShowUpdateModal(false)}>
-                Publish Update -&gt;
+              <button type="button" className="modal-primary" onClick={submitUpdate} disabled={isSaving}>
+                {isSaving ? "Publishing..." : "Publish Update ->"}
               </button>
             </div>
           </section>

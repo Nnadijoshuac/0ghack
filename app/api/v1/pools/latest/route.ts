@@ -8,8 +8,7 @@ export async function GET(request: Request) {
     const session = getSessionFromRequest(request);
     if (!session) return NextResponse.json({ pool: null });
 
-    const pools = await fetchPools();
-    const accessDb = loadAccessDb();
+    const [pools, accessDb] = await Promise.all([fetchPools(), loadAccessDb()]);
     const visibleGoal = accessDb.pools
       .filter((item) => item.type === "GOAL" && isPoolVisibleOnMyPools(item, session))
       .slice()
@@ -29,4 +28,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

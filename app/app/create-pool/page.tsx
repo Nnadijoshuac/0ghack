@@ -17,6 +17,7 @@ export default function CreatePoolPage() {
   const [showTypeModal, setShowTypeModal] = useState(true);
   const [launched, setLaunched] = useState(false);
   const [impactSubmitted, setImpactSubmitted] = useState(false);
+  const [impactPoolId, setImpactPoolId] = useState("");
   const [isLaunching, setIsLaunching] = useState(false);
   const [poolAddress, setPoolAddress] = useState("");
   const [txError, setTxError] = useState("");
@@ -101,6 +102,42 @@ export default function CreatePoolPage() {
       setLaunched(true);
     } catch (error) {
       setTxError(error instanceof Error ? error.message : "Failed to launch pool.");
+    } finally {
+      setIsLaunching(false);
+    }
+  };
+
+  const submitImpactPool = async () => {
+    try {
+      setIsLaunching(true);
+      setTxError("");
+
+      if (!impactForm.title.trim() || !impactForm.target.trim()) {
+        setTxError("Provide at least pool title and target before submitting.");
+        return;
+      }
+
+      const res = await fetch("/api/v1/impact/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: impactForm.title,
+          category: form.category || "Impact",
+          description: impactForm.problem,
+          target: Number(impactForm.target || 0),
+          contributionPerPerson: Number(impactForm.suggestedContribution || 0)
+        })
+      });
+      const payload = (await res.json()) as { error?: string; pool?: { id?: string } };
+      if (!res.ok) {
+        setTxError(payload.error || "Failed to submit impact pool.");
+        return;
+      }
+      const poolId = payload.pool?.id || "";
+      if (poolId) setImpactPoolId(poolId);
+      setImpactSubmitted(true);
+    } catch (error) {
+      setTxError(error instanceof Error ? error.message : "Failed to submit impact pool.");
     } finally {
       setIsLaunching(false);
     }
@@ -702,7 +739,7 @@ export default function CreatePoolPage() {
                   <button
                     type="button"
                     className="modal-primary"
-                    onClick={() => setImpactSubmitted(true)}
+                    onClick={submitImpactPool}
                   >
                     Submit for Review -&gt;
                   </button>
@@ -802,7 +839,11 @@ export default function CreatePoolPage() {
                 className="modal-primary"
                 onClick={() => {
                   setImpactSubmitted(false);
-                  router.push("/app/impact/creator");
+                  router.push(
+                    impactPoolId
+                      ? `/app/impact/creator?poolId=${encodeURIComponent(impactPoolId)}`
+                      : "/app/impact/creator"
+                  );
                 }}
               >
                 Back to My Pools -&gt;

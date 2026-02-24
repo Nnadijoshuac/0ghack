@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth/request-session";
 import { joinImpactPool, loadAccessDb } from "@/lib/backend/pool-access";
+import type { AccessPool } from "@/lib/backend/pool-access";
 
-function toImpactCard(pool: ReturnType<typeof loadAccessDb>["pools"][number], joined: boolean) {
+function toImpactCard(pool: AccessPool, joined: boolean) {
   const progress = pool.target > 0 ? Math.min(100, Math.round((pool.raised / pool.target) * 100)) : 0;
   return {
     id: pool.id,
     title: pool.name,
-    desc: "Community-governed impact pool open to all PoolFi users.",
+    desc: pool.description || "Community-governed impact pool open to all PoolFi users.",
     raised: pool.raised,
     target: pool.target,
     contributors: pool.joinedUserIds.length,
@@ -19,7 +20,7 @@ function toImpactCard(pool: ReturnType<typeof loadAccessDb>["pools"][number], jo
 
 export async function GET(request: Request) {
   const session = getSessionFromRequest(request);
-  const db = loadAccessDb();
+  const db = await loadAccessDb();
   const impactPools = db.pools.filter((pool) => pool.type === "IMPACT");
   const cards = impactPools.map((pool) =>
     toImpactCard(pool, Boolean(session && pool.joinedUserIds.includes(session.sub)))
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     stats: {
-      totalRaisedLabel: `₦${totalRaised.toLocaleString("en-US")}`,
+      totalRaisedLabel: `N${totalRaised.toLocaleString("en-US")}`,
       contributorsLabel: contributors.toLocaleString("en-US"),
       activePools: String(cards.length),
       completedLabel: "0"
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "poolId is required" }, { status: 400 });
     }
 
-    const joined = joinImpactPool(body.poolId, session);
+    const joined = await joinImpactPool(body.poolId, session);
     if (!joined) {
       return NextResponse.json({ error: "Impact pool not found" }, { status: 404 });
     }
