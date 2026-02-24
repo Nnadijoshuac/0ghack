@@ -25,13 +25,13 @@ export default function CreatePoolPage() {
     "classrep300@example.com"
   ]);
   const [form, setForm] = useState({
-    name: "300L Class Dues",
-    description: "Class dues for semester activities and welfare.",
-    target: "400000",
-    contribution: "1000",
-    category: "Education",
-    startDate: "2026-02-18",
-    deadline: "2026-03-04"
+    name: "",
+    description: "",
+    target: "",
+    contribution: "",
+    category: "",
+    startDate: "",
+    deadline: ""
   });
 
   const nextStep = () => setStep((prev) => (prev < 3 ? ((prev + 1) as Step) : prev));
@@ -56,6 +56,19 @@ export default function CreatePoolPage() {
     try {
       setIsLaunching(true);
       setTxError("");
+
+      if (
+        !form.name.trim() ||
+        !form.category.trim() ||
+        !form.target.trim() ||
+        !form.contribution.trim() ||
+        !form.startDate ||
+        !form.deadline
+      ) {
+        setTxError("Fill all required fields before launching.");
+        return;
+      }
+
       const startAt = Math.floor(new Date(form.startDate).getTime() / 1000);
       const deadline = Math.floor(new Date(form.deadline).getTime() / 1000);
 
@@ -152,21 +165,11 @@ export default function CreatePoolPage() {
               <button
                 type="button"
                 className="modal-primary"
-                onClick={() => {
-                  setShowTypeModal(false);
-                  if (poolKind === "impact") {
-                    setPoolKind("goal");
-                  }
-                }}
+                onClick={() => setShowTypeModal(false)}
               >
-                {poolKind === "goal" ? "Continue to Goal Setup ->" : "Start with Goal Pool ->"}
+                Continue to Setup -&gt;
               </button>
             </div>
-            {poolKind === "impact" ? (
-              <p className="pool-type-footnote">
-                Impact Pool flow is next. For now, continue with Goal Pool (private invite-only).
-              </p>
-            ) : null}
           </section>
         </div>
       ) : null}
@@ -176,7 +179,7 @@ export default function CreatePoolPage() {
           <Link href="/app" className="back-btn">
             &lt;
           </Link>
-          <h1>Create Goal Pool</h1>
+          <h1>{poolKind === "impact" ? "Create Impact Pool" : "Create Goal Pool"}</h1>
           <button type="button" className="wizard-preview">
             Preview
           </button>
@@ -202,7 +205,15 @@ export default function CreatePoolPage() {
             {step === 1 ? (
               <>
                 <div className="cp-head">
-                  <h2>Pool Basics</h2>
+                  <h2 className="cp-head-title">
+                    <Image
+                      src="/images/poolbasics.png"
+                      alt="Pool basics"
+                      width={18}
+                      height={18}
+                    />
+                    <span>Pool Basics</span>
+                  </h2>
                   <p>
                     Tell us what this pool is for. Contributors will see these details
                     when they open your link.
@@ -295,35 +306,46 @@ export default function CreatePoolPage() {
             {step === 2 ? (
               <>
                 <div className="cp-head">
-                  <h2>Rules & Identity Fields</h2>
-                  <p>Define how contributors pay and what information you need from them.</p>
+                  <h2 className="cp-head-title">
+                    <span className="cp-head-badge">⚙</span>
+                    <span>{poolKind === "impact" ? "Rules & Fields" : "Rules & Identity Fields"}</span>
+                  </h2>
+                  <p>
+                    {poolKind === "impact"
+                      ? "Define contribution rules and public contributor information."
+                      : "Define how contributors pay and what information you need from them."}
+                  </p>
                 </div>
                 <div className="cp-rules">
-                  <h4 className="section-title">Invited Members</h4>
-                  <div className="cp-invite-row">
-                    <input
-                      placeholder="Enter email or pseudonym"
-                      value={inviteInput}
-                      onChange={(event) => setInviteInput(event.target.value)}
-                    />
-                    <button type="button" className="cp-add-btn" onClick={addInvitee}>
-                      Add
-                    </button>
-                  </div>
-                  <div className="cp-pill-row">
-                    {invitees.length > 0 ? (
-                      invitees.map((invitee) => (
-                        <span key={invitee} className="cp-invite-pill">
-                          {invitee}
-                          <button type="button" onClick={() => removeInvitee(invitee)}>
-                            x
-                          </button>
-                        </span>
-                      ))
-                    ) : (
-                      <span>No invitees yet</span>
-                    )}
-                  </div>
+                  {poolKind === "goal" ? (
+                    <>
+                      <h4 className="section-title">Invited Members</h4>
+                      <div className="cp-invite-row">
+                        <input
+                          placeholder="Enter email or pseudonym"
+                          value={inviteInput}
+                          onChange={(event) => setInviteInput(event.target.value)}
+                        />
+                        <button type="button" className="cp-add-btn" onClick={addInvitee}>
+                          Add
+                        </button>
+                      </div>
+                      <div className="cp-pill-row">
+                        {invitees.length > 0 ? (
+                          invitees.map((invitee) => (
+                            <span key={invitee} className="cp-invite-pill">
+                              {invitee}
+                              <button type="button" onClick={() => removeInvitee(invitee)}>
+                                x
+                              </button>
+                            </span>
+                          ))
+                        ) : (
+                          <span>No invitees yet</span>
+                        )}
+                      </div>
+                    </>
+                  ) : null}
 
                   <h4 className="section-title">Payout Rules</h4>
                   <div className="cp-toggle">
@@ -374,7 +396,10 @@ export default function CreatePoolPage() {
             {step === 3 ? (
               <>
                 <div className="cp-head">
-                  <h2>Review & Launch</h2>
+                  <h2 className="cp-head-title">
+                    <span className="cp-head-badge">🚀</span>
+                    <span>Review & Launch</span>
+                  </h2>
                   <p>Everything looks good. Launch your pool and share the link.</p>
                 </div>
                 <div className="cp-summary">
@@ -405,19 +430,29 @@ export default function CreatePoolPage() {
                     <span>Matric. No</span>
                   </div>
                 </div>
-                <div className="cp-summary">
-                  <h4>Invited Members ({invitees.length})</h4>
-                  <div className="cp-pill-row">
-                    {invitees.slice(0, 4).map((invitee) => (
-                      <span key={invitee}>{invitee}</span>
-                    ))}
-                    {invitees.length > 4 ? <span>+{invitees.length - 4} more</span> : null}
+                {poolKind === "goal" ? (
+                  <div className="cp-summary">
+                    <h4>Invited Members ({invitees.length})</h4>
+                    <div className="cp-pill-row">
+                      {invitees.slice(0, 4).map((invitee) => (
+                        <span key={invitee}>{invitee}</span>
+                      ))}
+                      {invitees.length > 4 ? <span>+{invitees.length - 4} more</span> : null}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="cp-summary">
+                    <h4>Visibility</h4>
+                    <div className="cp-pill-row">
+                      <span>Public Pool</span>
+                      <span>Open to PoolFi users</span>
+                    </div>
+                  </div>
+                )}
                 <p className="cp-note">
-                  This Goal Pool is private and invite-only. Only invited members can
-                  access the contribution page. Pool funds are secured by smart contract
-                  and can only be released by you as admin.
+                  {poolKind === "impact"
+                    ? "This Impact Pool is public. PoolFi users can discover and join it after launch."
+                    : "This Goal Pool is private and invite-only. Only invited members can access the contribution page. Pool funds are secured by smart contract and can only be released by you as admin."}
                 </p>
                 {txError ? <p className="cp-note">{txError}</p> : null}
               </>
@@ -445,28 +480,48 @@ export default function CreatePoolPage() {
           </article>
 
           <aside className="cp-preview">
-            <h3>Live Preview</h3>
-            <p>What contributors see</p>
+            <div className="cp-preview-head">
+              <h3>Live Preview</h3>
+              <p>What contributors see</p>
+            </div>
             <article className="wizard-preview-card">
-              <p className="preview-eyebrow">
-                Goal Pool - Private - Invite Only
-              </p>
-              <h4>{form.name}</h4>
-              <p>{form.description || "Add a description above"}</p>
-              <div className="preview-metrics">
-                <div>
-                  <small>Target</small>
-                  <strong>{toMoney(Number(form.target || "0"))}</strong>
-                </div>
-                <div>
-                  <small>Per Person</small>
-                  <strong>{toMoney(Number(form.contribution || "0"))}</strong>
-                </div>
+              <div className="preview-top">
+                <p className="preview-eyebrow">
+                  {poolKind === "impact" ? "Impact Pool - Public" : "Goal Pool - Private"}
+                </p>
+                <h4>{form.name || "Your pool name..."}</h4>
+                <p className="preview-desc">{form.description || "Add a description above"}</p>
               </div>
-              <div className="preview-note">
-                Only invited members can access this pool link and contribute.
+
+              <div className="preview-body">
+                <div className="preview-metrics">
+                  <div>
+                    <small>Target</small>
+                    <strong>{form.target ? toMoney(Number(form.target)) : "₦-"}</strong>
+                  </div>
+                  <div>
+                    <small>Per Person</small>
+                    <strong>{form.contribution ? toMoney(Number(form.contribution)) : "₦-"}</strong>
+                  </div>
+                </div>
+
+                <div className="preview-progress-line" />
+                <p className="preview-meta-line">
+                  <span>₦0 raised</span>
+                  <span>0%</span>
+                </p>
+
+                <h5 className="preview-required">Required Info</h5>
+                <div className="preview-required-list">
+                  <span>👤 Full Name</span>
+                  <span>🎓 Matric No.</span>
+                </div>
               </div>
             </article>
+            <div className="preview-note">
+              The live preview updates as you fill in details. This is exactly what contributors
+              see when they open your pool link.
+            </div>
           </aside>
         </div>
       </section>
