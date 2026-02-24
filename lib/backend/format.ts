@@ -1,6 +1,6 @@
-﻿export function toMoney(value: number | bigint) {
+export function toMoney(value: number | bigint) {
   const amount = typeof value === "bigint" ? Number(value) : value;
-  return `N${amount.toLocaleString("en-US")}`;
+  return `₦${amount.toLocaleString("en-US")}`;
 }
 
 export function toPercent(raised: number, target: number) {
@@ -26,3 +26,4 @@ export function formatDate(isoOrSeconds: string | number) {
     year: "numeric"
   });
 }
+

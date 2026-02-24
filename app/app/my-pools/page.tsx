@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import AppTopbar from "@/components/app-topbar";
 import { formatDate, toMoney, toPercent } from "@/lib/backend/format";
 import type { PoolRecord } from "@/lib/backend/types";
 
@@ -77,35 +78,7 @@ export default function MyPoolsPage() {
 
   return (
     <section className="poolfi-content mypools-content">
-      <header className="poolfi-topbar">
-        <div>
-          <h1>
-            {greeting}, {pseudonym}
-          </h1>
-          <p>{dateLabel}</p>
-        </div>
-        <div className="topbar-actions">
-          <button type="button" className="icon-button">
-            <Image
-              src="/images/dashboard/notifications.png"
-              alt="Notifications"
-              width={18}
-              height={18}
-            />
-          </button>
-          <button type="button" className="icon-button">
-            <Image
-              src="/images/dashboard/settings.png"
-              alt="Settings"
-              width={18}
-              height={18}
-            />
-          </button>
-          <Link href="/app/create-pool" className="create-pool-btn">
-            + Create Pool
-          </Link>
-        </div>
-      </header>
+      <AppTopbar title={`${greeting}, ${pseudonym}`} subtitle={dateLabel} />
 
       {error ? <p className="cp-note">{error}</p> : null}
 
@@ -167,4 +140,3 @@ export default function MyPoolsPage() {
     </section>
   );
 }
-

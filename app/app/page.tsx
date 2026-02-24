@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import AppTopbar from "@/components/app-topbar";
 import { toMoney, toPercent } from "@/lib/backend/format";
 import type { PoolRecord } from "@/lib/backend/types";
 
@@ -25,8 +26,8 @@ const spotlightPools = Array.from({ length: 4 }, (_, idx) => ({
   title: "Clean Water Borehole for Oguta Community, Imo State",
   description:
     "Help build a functioning borehole for 3,000+ residents who currently walk 2km daily for water.",
-  raised: "N670,000",
-  target: "N1,000,000",
+  raised: "₦670,000",
+  target: "₦1,000,000",
   progress: 67
 }));
 
@@ -109,47 +110,19 @@ export default function AppPage() {
 
   return (
     <section className="poolfi-content">
-      <header className="poolfi-topbar">
-        <div>
-          <h1>
-            {greeting}, {data?.viewer.handle ?? "Builder"}
-          </h1>
-          <p>{dateLabel}</p>
-        </div>
-        <div className="topbar-actions">
-          <button type="button" className="icon-button">
-            <Image
-              src="/images/dashboard/notifications.png"
-              alt="Notifications"
-              width={18}
-              height={18}
-            />
-          </button>
-          <button type="button" className="icon-button">
-            <Image
-              src="/images/dashboard/settings.png"
-              alt="Settings"
-              width={18}
-              height={18}
-            />
-          </button>
-          <Link href="/app/create-pool" className="create-pool-btn">
-            + Create Pool
-          </Link>
-        </div>
-      </header>
+      <AppTopbar title={`${greeting}, ${data?.viewer.handle ?? "Builder"}`} subtitle={dateLabel} />
 
       <section className="balance-card">
         <div className="balance-head">
           <div>
             <p>Your PoolFi Balance</p>
             <h2>{toMoney(data?.balance.total ?? 0)}.00</h2>
-            <span>Total Raised Across Pools</span>
+            <span>Total Balance</span>
           </div>
           <div className="balance-actions">
             <button type="button">+ Add Funds</button>
             <button type="button" className="ghost">
-              Withdraw
+              ↑ Withdraw
             </button>
           </div>
         </div>
@@ -157,7 +130,7 @@ export default function AppPage() {
           <article>
             <p>Available</p>
             <h3>{toMoney(data?.balance.available ?? 0)}.00</h3>
-            <span>Wallet integration pending</span>
+            <span>Free to use</span>
           </article>
           <article>
             <p>Locked</p>
@@ -167,7 +140,7 @@ export default function AppPage() {
           <article>
             <p>Pools</p>
             <h3>{(data?.pools ?? []).length} Active</h3>
-            <span>On-chain factory deployments</span>
+            <span>{Math.max((data?.pools ?? []).length - 1, 0)} completed</span>
           </article>
         </div>
       </section>

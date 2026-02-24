@@ -231,7 +231,7 @@ export default function CreatePoolPage() {
                   </label>
                   <div className="cp-two">
                     <label>
-                      Target Amount (N)
+                      Target Amount (₦)
                       <input
                         placeholder="400,000"
                         value={form.target}
@@ -244,7 +244,7 @@ export default function CreatePoolPage() {
                       />
                     </label>
                     <label>
-                      Contribution Per Person (N)
+                      Contribution Per Person (₦)
                       <input
                         placeholder="1,000"
                         value={form.contribution}

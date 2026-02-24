@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
+import AppTopbar from "@/components/app-topbar";
 import { contributeToPoolOnChain } from "@/lib/backend/contracts";
 import { formatDate, shortAddress, toMoney, toPercent } from "@/lib/backend/format";
 import type { MemberRecord, PoolRecord } from "@/lib/backend/types";
@@ -15,6 +16,8 @@ export default function PoolManagerPage() {
   const [poolAddress, setPoolAddress] = useState("");
   const [isContributing, setIsContributing] = useState(false);
   const [txMessage, setTxMessage] = useState("");
+  const [now, setNow] = useState(() => new Date());
+  const [pseudonym, setPseudonym] = useState("Builder");
 
   useEffect(() => {
     let cancelled = false;
@@ -52,6 +55,42 @@ export default function PoolManagerPage() {
     };
   }, []);
 
+  useEffect(() => {
+    fetch("/api/v1/auth/me", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((payload: { session?: { pseudonym?: string } }) => {
+        if (typeof payload.session?.pseudonym === "string" && payload.session.pseudonym.trim()) {
+          setPseudonym(payload.session.pseudonym);
+        }
+      })
+      .catch(() => {
+        // keep fallback
+      });
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const greeting = useMemo(() => {
+    const hour = now.getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  }, [now]);
+
+  const dateLabel = useMemo(
+    () =>
+      now.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }),
+    [now]
+  );
+
   const progress = useMemo(() => {
     if (!pool) return 0;
     return toPercent(pool.raised, pool.target);
@@ -77,6 +116,7 @@ export default function PoolManagerPage() {
 
   return (
     <section className="poolfi-content pool-manager-content">
+      <AppTopbar title={`${greeting}, ${pseudonym}`} subtitle={dateLabel} ctaLabel="Export CSV" ctaHref="#" />
       <section className="manager-hero">
         <p className="manager-chip">Goal Pool - Private - Invite Only</p>
         <h1>{pool?.name ?? "No pool found"}</h1>

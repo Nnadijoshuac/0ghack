@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import AppTopbar from "@/components/app-topbar";
 import { toMoney } from "@/lib/backend/format";
 
 const categories = [
@@ -43,6 +44,8 @@ export default function ImpactPage() {
   const [data, setData] = useState<ImpactResponse | null>(null);
   const [error, setError] = useState("");
   const [joiningPoolId, setJoiningPoolId] = useState("");
+  const [now, setNow] = useState(() => new Date());
+  const [pseudonym, setPseudonym] = useState("Builder");
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +63,42 @@ export default function ImpactPage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    fetch("/api/v1/auth/me", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((payload: { session?: { pseudonym?: string } }) => {
+        if (typeof payload.session?.pseudonym === "string" && payload.session.pseudonym.trim()) {
+          setPseudonym(payload.session.pseudonym);
+        }
+      })
+      .catch(() => {
+        // keep fallback
+      });
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const greeting = useMemo(() => {
+    const hour = now.getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  }, [now]);
+
+  const dateLabel = useMemo(
+    () =>
+      now.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }),
+    [now]
+  );
 
   const cards = useMemo(() => data?.cards ?? [], [data]);
   const featured = data?.featured ?? null;
@@ -99,6 +138,7 @@ export default function ImpactPage() {
 
   return (
     <section className="poolfi-content impact-content">
+      <AppTopbar title={`${greeting}, ${pseudonym}`} subtitle={dateLabel} />
       <section className="impact-hero">
         <p className="impact-chip">Impact Pools</p>
         <h1>
@@ -112,7 +152,7 @@ export default function ImpactPage() {
         </p>
         <div className="impact-stats">
           <article>
-            <h3>{data?.stats.totalRaisedLabel ?? "N0"}</h3>
+            <h3>{data?.stats.totalRaisedLabel ?? "₦0"}</h3>
             <p>Total Raised</p>
           </article>
           <article>
@@ -214,4 +254,3 @@ export default function ImpactPage() {
     </section>
   );
 }
-
