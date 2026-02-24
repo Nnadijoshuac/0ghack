@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -16,14 +16,11 @@ export default function CreatePoolPage() {
   const [poolKind, setPoolKind] = useState<PoolKind>("goal");
   const [showTypeModal, setShowTypeModal] = useState(true);
   const [launched, setLaunched] = useState(false);
+  const [impactSubmitted, setImpactSubmitted] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
   const [poolAddress, setPoolAddress] = useState("");
   const [txError, setTxError] = useState("");
-  const [inviteInput, setInviteInput] = useState("");
-  const [invitees, setInvitees] = useState<string[]>([
-    "john.doe@email.com",
-    "classrep300@example.com"
-  ]);
+  const [invitees] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -33,24 +30,20 @@ export default function CreatePoolPage() {
     startDate: "",
     deadline: ""
   });
+  const [impactForm, setImpactForm] = useState({
+    title: "",
+    problem: "",
+    usage: "",
+    location: "",
+    beneficiaries: "",
+    target: "",
+    deadline: "",
+    suggestedContribution: "",
+    referenceLink: ""
+  });
 
   const nextStep = () => setStep((prev) => (prev < 3 ? ((prev + 1) as Step) : prev));
   const prevStep = () => setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev));
-
-  const addInvitee = () => {
-    const value = inviteInput.trim();
-    if (!value) return;
-    if (invitees.includes(value)) {
-      setInviteInput("");
-      return;
-    }
-    setInvitees((prev) => [...prev, value]);
-    setInviteInput("");
-  };
-
-  const removeInvitee = (value: string) => {
-    setInvitees((prev) => prev.filter((entry) => entry !== value));
-  };
 
   const launchPool = async () => {
     try {
@@ -185,6 +178,8 @@ export default function CreatePoolPage() {
           </button>
         </header>
 
+        {poolKind === "goal" ? (
+          <>
         <div className="create-pool-steps">
           {[1, 2, 3].map((s) => (
             <div key={s} className={`cp-step ${step === s ? "active" : step > s ? "done" : ""}`}>
@@ -307,46 +302,12 @@ export default function CreatePoolPage() {
               <>
                 <div className="cp-head">
                   <h2 className="cp-head-title">
-                    <span className="cp-head-badge">⚙</span>
-                    <span>{poolKind === "impact" ? "Rules & Fields" : "Rules & Identity Fields"}</span>
+                    <span className="cp-head-badge">?</span>
+                    <span>Rules & Identity Fields</span>
                   </h2>
-                  <p>
-                    {poolKind === "impact"
-                      ? "Define contribution rules and public contributor information."
-                      : "Define how contributors pay and what information you need from them."}
-                  </p>
+                  <p>Define how contributors pay and what information you need from them.</p>
                 </div>
                 <div className="cp-rules">
-                  {poolKind === "goal" ? (
-                    <>
-                      <h4 className="section-title">Invited Members</h4>
-                      <div className="cp-invite-row">
-                        <input
-                          placeholder="Enter email or pseudonym"
-                          value={inviteInput}
-                          onChange={(event) => setInviteInput(event.target.value)}
-                        />
-                        <button type="button" className="cp-add-btn" onClick={addInvitee}>
-                          Add
-                        </button>
-                      </div>
-                      <div className="cp-pill-row">
-                        {invitees.length > 0 ? (
-                          invitees.map((invitee) => (
-                            <span key={invitee} className="cp-invite-pill">
-                              {invitee}
-                              <button type="button" onClick={() => removeInvitee(invitee)}>
-                                x
-                              </button>
-                            </span>
-                          ))
-                        ) : (
-                          <span>No invitees yet</span>
-                        )}
-                      </div>
-                    </>
-                  ) : null}
-
                   <h4 className="section-title">Payout Rules</h4>
                   <div className="cp-toggle">
                     <div>
@@ -362,11 +323,26 @@ export default function CreatePoolPage() {
                     </div>
                     <button type="button" className="switch off" />
                   </div>
-                  <div className="cp-list-item">50% First release - midpoint</div>
-                  <div className="cp-list-item">100% Final release - pool closes</div>
+
+                  <h4 className="section-title">Milestone Points</h4>
+                  <div className="cp-list-item">
+                    <span className="cp-list-pct">50%</span>
+                    <span>First release - midpoint</span>
+                    <button type="button" aria-label="Remove milestone">
+                      ×
+                    </button>
+                  </div>
+                  <div className="cp-list-item">
+                    <span className="cp-list-pct">100%</span>
+                    <span>Final release - pool closes</span>
+                    <button type="button" aria-label="Remove milestone">
+                      ×
+                    </button>
+                  </div>
                   <button type="button" className="cp-dashed-btn">
                     + Add Milestone
                   </button>
+
                   <h4 className="section-title">Pool Options</h4>
                   <div className="cp-toggle">
                     <div>
@@ -389,6 +365,36 @@ export default function CreatePoolPage() {
                     </div>
                     <button type="button" className="switch off" />
                   </div>
+
+                  <h4 className="section-title">Required Identity Fields</h4>
+                  <div className="cp-pill-row">
+                    <span>Full Name</span>
+                    <span>Matric. No</span>
+                    <span>Phone No</span>
+                  </div>
+
+                  <h4 className="section-title">Milestone Points</h4>
+                  <div className="cp-list-item">
+                    <span className="cp-list-pct">50%</span>
+                    <span>Full Name</span>
+                    <button type="button" aria-label="Remove field">
+                      ×
+                    </button>
+                  </div>
+                  <div className="cp-list-item">
+                    <span className="cp-list-pct">100%</span>
+                    <span>Matric. No</span>
+                    <button type="button" aria-label="Remove field">
+                      ×
+                    </button>
+                  </div>
+                  <button type="button" className="cp-dashed-btn">
+                    + Add Custom Field
+                  </button>
+                  <p className="cp-rules-note">
+                    Choose what contributors must provide. These appear on your CSV report.
+                    Select from presets or add custom fields.
+                  </p>
                 </div>
               </>
             ) : null}
@@ -402,57 +408,48 @@ export default function CreatePoolPage() {
                   </h2>
                   <p>Everything looks good. Launch your pool and share the link.</p>
                 </div>
-                <div className="cp-summary">
-                  <h4>Pool Summary</h4>
-                  <div className="cp-summary-grid">
-                    <div>
-                      <small>Pool Name</small>
-                      <strong>{form.name}</strong>
+                <div className="cp-review-wrap">
+                  <div className="cp-summary cp-summary-muted">
+                    <h4>Pool Summary</h4>
+                    <div className="cp-summary-grid">
+                      <div>
+                        <small>Pool Name</small>
+                        <strong>{form.name || "300L Class Dues"}</strong>
+                      </div>
+                      <div>
+                        <small>Target</small>
+                        <strong>{Number(form.target || "400000").toLocaleString("en-US")}</strong>
+                      </div>
+                      <div>
+                        <small>per person</small>
+                        <strong>{Number(form.contribution || "1000").toLocaleString("en-US")}</strong>
+                      </div>
+                      <div>
+                        <small>Deadline</small>
+                        <strong>
+                          {form.deadline
+                            ? new Date(form.deadline).toLocaleDateString("en-GB", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric"
+                              })
+                            : "7 Mar 2026"}
+                        </strong>
+                      </div>
                     </div>
-                    <div>
-                      <small>Target</small>
-                      <strong>{Number(form.target || "0").toLocaleString("en-US")}</strong>
-                    </div>
-                    <div>
-                      <small>Per Person</small>
-                      <strong>{Number(form.contribution || "0").toLocaleString("en-US")}</strong>
-                    </div>
-                    <div>
-                      <small>Deadline</small>
-                      <strong>{new Date(form.deadline).toDateString()}</strong>
+                  </div>
+
+                  <div className="cp-summary cp-summary-muted">
+                    <h4>Identity Fields</h4>
+                    <div className="cp-pill-row">
+                      <span>Full Name</span>
+                      <span>Matric. No</span>
                     </div>
                   </div>
                 </div>
-                <div className="cp-summary">
-                  <h4>Identity Fields</h4>
-                  <div className="cp-pill-row">
-                    <span>Full Name</span>
-                    <span>Matric. No</span>
-                  </div>
-                </div>
-                {poolKind === "goal" ? (
-                  <div className="cp-summary">
-                    <h4>Invited Members ({invitees.length})</h4>
-                    <div className="cp-pill-row">
-                      {invitees.slice(0, 4).map((invitee) => (
-                        <span key={invitee}>{invitee}</span>
-                      ))}
-                      {invitees.length > 4 ? <span>+{invitees.length - 4} more</span> : null}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="cp-summary">
-                    <h4>Visibility</h4>
-                    <div className="cp-pill-row">
-                      <span>Public Pool</span>
-                      <span>Open to PoolFi users</span>
-                    </div>
-                  </div>
-                )}
                 <p className="cp-note">
-                  {poolKind === "impact"
-                    ? "This Impact Pool is public. PoolFi users can discover and join it after launch."
-                    : "This Goal Pool is private and invite-only. Only invited members can access the contribution page. Pool funds are secured by smart contract and can only be released by you as admin."}
+                  Once launched, your pool will be deployed on the 0G network. Contributions are
+                  secured by smart contract and can only be released by you as the admin.
                 </p>
                 {txError ? <p className="cp-note">{txError}</p> : null}
               </>
@@ -524,6 +521,231 @@ export default function CreatePoolPage() {
             </div>
           </aside>
         </div>
+          </>
+        ) : (
+          <div className="impact-create-grid">
+            <div className="impact-create-main">
+              <section className="impact-how">
+                <h4>How Vetting works</h4>
+                <ol>
+                  <li>You submit your pool with cause details and supporting evidence</li>
+                  <li>PoolFi reviews within 24-48 hours</li>
+                  <li>Approved pools go live on the explore feed</li>
+                  <li>Withdrawals require community multi-sig approval</li>
+                </ol>
+              </section>
+
+              <article className="cp-main-card impact-card">
+                <div className="cp-head">
+                  <h2 className="cp-head-title">
+                    <Image src="/images/poolbasics.png" alt="Pool basics" width={18} height={18} />
+                    <span>Pool Basics</span>
+                  </h2>
+                  <p>Tell us what this pool is for. Contributors will see these details when they open your link.</p>
+                </div>
+                <div className="cp-form">
+                  <label>
+                    Pool Title
+                    <input
+                      placeholder="e.g clean water borehole for oguta community"
+                      value={impactForm.title}
+                      onChange={(event) => setImpactForm((prev) => ({ ...prev, title: event.target.value }))}
+                    />
+                  </label>
+                  <label>
+                    Describe a problem
+                    <textarea
+                      placeholder="What problem are you solving? who does it affect? Be specific - contributors need to understand why this matters"
+                      value={impactForm.problem}
+                      onChange={(event) => setImpactForm((prev) => ({ ...prev, problem: event.target.value }))}
+                    />
+                  </label>
+                  <label>
+                    How will the money be used?
+                    <textarea
+                      placeholder="Break down how funds will be spent. e.g 400k - go for borehole drilling"
+                      value={impactForm.usage}
+                      onChange={(event) => setImpactForm((prev) => ({ ...prev, usage: event.target.value }))}
+                    />
+                  </label>
+                  <label>
+                    Location/community
+                    <input
+                      placeholder="e.g oguta, imo state, Nigeria"
+                      value={impactForm.location}
+                      onChange={(event) => setImpactForm((prev) => ({ ...prev, location: event.target.value }))}
+                    />
+                  </label>
+                  <label>
+                    Who benefits?
+                    <input
+                      placeholder="e.g 3000+ residents of oguta community"
+                      value={impactForm.beneficiaries}
+                      onChange={(event) =>
+                        setImpactForm((prev) => ({ ...prev, beneficiaries: event.target.value }))
+                      }
+                    />
+                  </label>
+                </div>
+              </article>
+
+              <article className="cp-main-card impact-card">
+                <div className="cp-head">
+                  <h2 className="cp-head-title">
+                    <span className="cp-head-badge">💰</span>
+                    <span>Funding Details</span>
+                  </h2>
+                  <p>Set your target and timeline. Contributions are open to everyone.</p>
+                </div>
+                <div className="cp-form">
+                  <div className="cp-two">
+                    <label>
+                      Funding Target (₦)
+                      <input
+                        placeholder="400,000"
+                        value={impactForm.target}
+                        onChange={(event) =>
+                          setImpactForm((prev) => ({
+                            ...prev,
+                            target: event.target.value.replace(/\D/g, "")
+                          }))
+                        }
+                      />
+                    </label>
+                    <label>
+                      Deadline
+                      <input
+                        type="date"
+                        value={impactForm.deadline}
+                        onChange={(event) => setImpactForm((prev) => ({ ...prev, deadline: event.target.value }))}
+                      />
+                    </label>
+                  </div>
+                  <label>
+                    Suggested Contribution (₦) <span>optional</span>
+                    <input
+                      placeholder="e.g 2,000 - contributors can give any amount"
+                      value={impactForm.suggestedContribution}
+                      onChange={(event) =>
+                        setImpactForm((prev) => ({
+                          ...prev,
+                          suggestedContribution: event.target.value.replace(/\D/g, "")
+                        }))
+                      }
+                    />
+                  </label>
+                </div>
+              </article>
+
+              <article className="cp-main-card impact-card">
+                <div className="cp-head">
+                  <h2 className="cp-head-title">
+                    <span className="cp-head-badge">🔐</span>
+                    <span>Withdrawal Governance</span>
+                  </h2>
+                  <p>Impact pools use community multi-sig for all withdrawals.</p>
+                </div>
+                <div className="cp-form">
+                  <div className="cp-note">
+                    <strong>How Multi-Sig Works on PoolFi</strong>
+                    <br />
+                    When you request a withdrawal, PoolFi randomly selects contributors from your pool to review and
+                    approve the request.
+                  </div>
+                  <label>
+                    Approvers Required per Withdrawal
+                    <input value="3 of 5 randomly selected contributors" disabled />
+                  </label>
+                </div>
+              </article>
+
+              <article className="cp-main-card impact-card">
+                <div className="cp-head">
+                  <h2 className="cp-head-title">
+                    <span className="cp-head-badge">
+                      <Image
+                        src="/images/supporting evidence.png"
+                        alt="Supporting evidence"
+                        width={14}
+                        height={14}
+                      />
+                    </span>
+                    <span>Supporting Evidence</span>
+                  </h2>
+                  <p>Verified pools get more contributions. Upload proof of the problem.</p>
+                </div>
+                <div className="cp-form">
+                  <div className="impact-upload-box">
+                    <Image
+                      src="/images/camera-01.png"
+                      alt="Upload"
+                      width={46}
+                      height={46}
+                      className="impact-upload-icon"
+                    />
+                    <p>Upload photos or documents</p>
+                    <small>JPG, PNG, PDF. Max 5mb per file</small>
+                  </div>
+                  <label>
+                    Reference Link <span>optional</span>
+                    <input
+                      placeholder="e.g news article, community letter, social media posts"
+                      value={impactForm.referenceLink}
+                      onChange={(event) => setImpactForm((prev) => ({ ...prev, referenceLink: event.target.value }))}
+                    />
+                  </label>
+                </div>
+                <div className="cp-actions impact-actions">
+                  <button type="button" className="modal-secondary" onClick={() => router.push("/app/impact")}>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="modal-primary"
+                    onClick={() => setImpactSubmitted(true)}
+                  >
+                    Submit for Review -&gt;
+                  </button>
+                </div>
+              </article>
+            </div>
+
+            <aside className="cp-preview impact-preview">
+              <div className="cp-preview-head">
+                <h3>Live Preview</h3>
+                <p>What contributors see</p>
+              </div>
+              <article className="wizard-preview-card">
+                <div className="preview-top">
+                  <p className="preview-eyebrow">Impact Pool - Public</p>
+                  <h4>{impactForm.title || "Your pool title..."}</h4>
+                  <p className="preview-desc">{impactForm.problem || "Add a description above"}</p>
+                </div>
+                <div className="preview-body">
+                  <div className="preview-progress-line" />
+                  <p className="preview-meta-line">
+                    <span>₦0 raised</span>
+                    <span>0%</span>
+                  </p>
+                  <div className="preview-metrics">
+                    <div>
+                      <small>Target</small>
+                      <strong>{impactForm.target ? toMoney(Number(impactForm.target)) : "₦-"}</strong>
+                    </div>
+                    <div>
+                      <small>Approvers</small>
+                      <strong>3 of 5</strong>
+                    </div>
+                  </div>
+                </div>
+              </article>
+              <div className="preview-note">
+                After submission, PoolFi reviews your pool within 24-48 hours. Approved pools appear on the explore
+                feed and can be shared publicly.
+              </div>
+            </aside>
+          </div>
+        )}
       </section>
 
       {launched ? (
@@ -545,6 +767,52 @@ export default function CreatePoolPage() {
           </section>
         </div>
       ) : null}
+
+      {impactSubmitted ? (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <section className="pool-modal impact-review-modal">
+            <div className="impact-review-icon">📄</div>
+            <h2>Submitted for Review</h2>
+            <p>
+              Your impact pool has been submitted. Here is what happens next while you wait.
+            </p>
+
+            <div className="impact-review-list">
+              <div className="impact-review-item">
+                <span>Pool Successfully Submitted</span>
+                <em className="done">Done</em>
+              </div>
+              <div className="impact-review-item">
+                <span>PoolFi review (24-48 hrs)</span>
+                <em className="pending">Pending</em>
+              </div>
+              <div className="impact-review-item">
+                <span>Pool goes live on explore feed</span>
+                <em className="waiting">Waiting</em>
+              </div>
+              <div className="impact-review-item">
+                <span>Share link sent to your account</span>
+                <em className="waiting">Waiting</em>
+              </div>
+            </div>
+
+            <div className="impact-review-actions">
+              <button
+                type="button"
+                className="modal-primary"
+                onClick={() => {
+                  setImpactSubmitted(false);
+                  router.push("/app/my-pools");
+                }}
+              >
+                Back to My Pools -&gt;
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </>
   );
 }
+
+
